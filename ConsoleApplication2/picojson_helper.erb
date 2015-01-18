@@ -57,25 +57,22 @@ contents =<<EOS
       // unpack
       #define PICOJSON_DEFINE_UNPACK_1(clsname, a1)  PICOJSON_DEFINE_UNPACK_ITEM(clsname, a1)
    <% else %>
-      // pack
-      #define PICOJSON_DEFINE_PACK_<%= n %>(clsname, <%= args('a', n) %>) \\
-         PICOJSON_DEFINE_PACK_<%= n %>_I_((clsname,  <%= args('a', n) %>))
-
-      #define PICOJSON_DEFINE_PACK_<%= n %>_I_(tuple) PICOJSON_DEFINE_PACK_<%= n %>_I tuple 
-      
-      #define PICOJSON_DEFINE_PACK_<%= n %>_I(clsname, <%= args('a', n) %>) \\
-         PICOJSON_DEFINE_PACK_<%= n - 1 %>(clsname, <%= args('a', n-1) %>) \\
-         PICOJSON_DEFINE_PACK_ITEM(clsname, a<%= n %>)
-      
-      // unpack
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>(clsname, <%= args('a', n) %>) \\
-         PICOJSON_DEFINE_UNPACK_<%= n %>_I_((clsname,  <%= args('a', n) %>))
-      
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I_(tuple) PICOJSON_DEFINE_UNPACK_<%= n %>_I tuple 
-      
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I(clsname, <%= args('a', n) %>) \\
-         PICOJSON_DEFINE_UNPACK_<%= n - 1 %>(clsname, <%= args('a', n) %>) \\
-         PICOJSON_DEFINE_UNPACK_ITEM(clsname, a<%= n %>)
+      <%# pack %>
+      #define PICOJSON_DEFINE_PACK_<%= n %>(clsname, <%= args('a', n) %>)       \\
+          PICOJSON_DEFINE_PACK_<%= n %>_I_((clsname, <%= args('a', n) %>))
+      #define PICOJSON_DEFINE_PACK_<%= n %>_I_(tuple)                           \\
+          PICOJSON_DEFINE_PACK_<%= n %>_I tuple 
+      #define PICOJSON_DEFINE_PACK_<%= n %>_I(clsname, <%= args('a', n) %>)     \\
+          PICOJSON_DEFINE_PACK_<%= n - 1 %>  (clsname, <%= args('a', n - 1) %>) \\
+          PICOJSON_DEFINE_PACK_ITEM          (clsname, a<%= n %>)
+      <%# unpack %>
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>(clsname, <%= args('a', n) %>)       \\
+          PICOJSON_DEFINE_UNPACK_<%= n %>_I_((clsname, <%= args('a', n) %>))
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I_(tuple)                           \\
+          PICOJSON_DEFINE_UNPACK_<%= n %>_I tuple 
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I(clsname, <%= args('a', n) %>)     \\
+          PICOJSON_DEFINE_UNPACK_<%= n - 1 %>  (clsname, <%= args('a', n - 1) %>) \\
+          PICOJSON_DEFINE_UNPACK_ITEM          (clsname, a<%= n %>)
    <% end %>
 <% end %>
 
