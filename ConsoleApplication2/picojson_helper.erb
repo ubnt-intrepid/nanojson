@@ -35,35 +35,48 @@ require 'erb'
 
 MAX_ITER = 10  # 可変長引数の最大次数
 
+# 指定個数の引数
+def args(name, n)
+   (1 .. n).map{ |i| name + i.to_s() }.join(",")
+end 
+
 contents =<<EOS
 #pragma once
 
 // Calculate the count of arguments.
-#define PICOJSON_NUM_VA_ARGS_I( \
-<%= (1 .. MAX_ITER).map{ |i| '_' + i.to_s() }.join(",") %>,N,...) N
+#define PICOJSON_NUM_VA_ARGS_I(<%= args('_', MAX_ITER) %>,N,...) N
 #define PICOJSON_NUM_VA_ARGS_I_(tuple) PICOJSON_NUM_VA_ARGS_I tuple
-#define PICOJSON_NUM_VA_ARGS(...) PICOJSON_NUM_VA_ARGS_I_((__VA_ARGS__,\
-<%= [*1 .. MAX_ITER].reverse.map{ |i| i.to_s() }.join(",") %>))
+#define PICOJSON_NUM_VA_ARGS(...) PICOJSON_NUM_VA_ARGS_I_(\
+   (__VA_ARGS__, <%= [*1 .. MAX_ITER].reverse.map{ |i| i.to_s() }.join(",") %>))
 
 // definition of pack/unpack method
-<% (1 .. MAX_ITER).each do |x| %>
-<% if x == 1 then %>
-#define PICOJSON_DEFINE_PACK_1(clsname, a1)    PICOJSON_DEFINE_PACK_ITEM  (clsname, a1)
-#define PICOJSON_DEFINE_UNPACK_1(clsname, a1)  PICOJSON_DEFINE_UNPACK_ITEM(clsname, a1)
-<% else %>
-#define PICOJSON_DEFINE_PACK_<%= x %>(clsname, <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
-   PICOJSON_DEFINE_PACK_<%= x %>_I_((clsname,  <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>))
-#define PICOJSON_DEFINE_PACK_<%= x %>_I_(tuple) PICOJSON_DEFINE_PACK_<%= x %>_I tuple 
-#define PICOJSON_DEFINE_PACK_<%= x %>_I(clsname, <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
-   PICOJSON_DEFINE_PACK_<%= x - 1 %>(clsname, <%= (1 .. x-1).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
-   PICOJSON_DEFINE_PACK_ITEM(clsname, a<%= x %>)
-#define PICOJSON_DEFINE_UNPACK_<%= x %>(clsname, <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
-   PICOJSON_DEFINE_UNPACK_<%= x %>_I_((clsname,  <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>))
-#define PICOJSON_DEFINE_UNPACK_<%= x %>_I_(tuple) PICOJSON_DEFINE_UNPACK_<%= x %>_I tuple 
-#define PICOJSON_DEFINE_UNPACK_<%= x %>_I(clsname, <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
-   PICOJSON_DEFINE_UNPACK_<%= x - 1 %>(clsname, <%= (1 .. x-1).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
-   PICOJSON_DEFINE_UNPACK_ITEM(clsname, a<%= x %>)
-<% end %>
+<% (1 .. MAX_ITER).each do |n| %>
+   <% if n == 1 then %>
+      // pack
+      #define PICOJSON_DEFINE_PACK_1(clsname, a1)    PICOJSON_DEFINE_PACK_ITEM  (clsname, a1)
+      // unpack
+      #define PICOJSON_DEFINE_UNPACK_1(clsname, a1)  PICOJSON_DEFINE_UNPACK_ITEM(clsname, a1)
+   <% else %>
+      // pack
+      #define PICOJSON_DEFINE_PACK_<%= n %>(clsname, <%= args('a', n) %>) \\
+         PICOJSON_DEFINE_PACK_<%= n %>_I_((clsname,  <%= args('a', n) %>))
+
+      #define PICOJSON_DEFINE_PACK_<%= n %>_I_(tuple) PICOJSON_DEFINE_PACK_<%= n %>_I tuple 
+      
+      #define PICOJSON_DEFINE_PACK_<%= n %>_I(clsname, <%= args('a', n) %>) \\
+         PICOJSON_DEFINE_PACK_<%= n - 1 %>(clsname, <%= args('a', n-1) %>) \\
+         PICOJSON_DEFINE_PACK_ITEM(clsname, a<%= n %>)
+      
+      // unpack
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>(clsname, <%= args('a', n) %>) \\
+         PICOJSON_DEFINE_UNPACK_<%= n %>_I_((clsname,  <%= args('a', n) %>))
+      
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I_(tuple) PICOJSON_DEFINE_UNPACK_<%= n %>_I tuple 
+      
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I(clsname, <%= args('a', n) %>) \\
+         PICOJSON_DEFINE_UNPACK_<%= n - 1 %>(clsname, <%= args('a', n) %>) \\
+         PICOJSON_DEFINE_UNPACK_ITEM(clsname, a<%= n %>)
+   <% end %>
 <% end %>
 
 #define PICOJSON_DEFINE_PACK_ITEM(clsname, a) \\
