@@ -1,0 +1,102 @@
+require 'erb'
+
+# ユーザ定義型をpicojson::objectから変換，picojson::objectに変換するためのメンバ関数を定義する
+# マクロを生成するrubyスクリプト
+# usage
+#   ruby json_helper.erb                     # 標準出力に出力される
+#   ruby json_helper.erb > json_helper.hpp
+# 
+# ...
+# #include "picojson.h"
+# #include "json_helper.hpp"
+#
+# struct sample {
+#    int a, b, c, d;
+#    std::string f;
+# public:
+#    PICOJSON_DEFINE(sample, a, b, c, d, f) // 定義
+# };
+#
+# int main()
+# {
+#     // serialize to picojson::object
+#     sample s;
+#     picojson::object root;
+#     picojson::pack(root, s);
+#
+#     // deserialize from picojson::object
+#     sample s2;
+#     picojson::unpack(root, s2);
+#     std::cout << s2 << std::endl;
+# }
+#
+# 現状JSON_DEFINE()に渡すことのできる型はbool, double, std::string, picojson::null, 
+# picojson::array(=std::vector<picojson::value>), picojson::object(=std::map<picojson::value>)のみ
+
+MAX_ITER = 10  # 可変長引数の最大次数
+
+contents =<<EOS
+#pragma once
+
+// Calculate the count of arguments.
+#define PICOJSON_NUM_VA_ARGS_I( \
+<%= (1 .. MAX_ITER).map{ |i| '_' + i.to_s() }.join(",") %>,N,...) N
+#define PICOJSON_NUM_VA_ARGS_I_(tuple) PICOJSON_NUM_VA_ARGS_I tuple
+#define PICOJSON_NUM_VA_ARGS(...) PICOJSON_NUM_VA_ARGS_I_((__VA_ARGS__,\
+<%= [*1 .. MAX_ITER].reverse.map{ |i| i.to_s() }.join(",") %>))
+
+// definition of pack/unpack method
+<% (1 .. MAX_ITER).each do |x| %>
+<% if x == 1 then %>
+#define PICOJSON_DEFINE_PACK_1(clsname, a1)    PICOJSON_DEFINE_PACK_ITEM  (clsname, a1)
+#define PICOJSON_DEFINE_UNPACK_1(clsname, a1)  PICOJSON_DEFINE_UNPACK_ITEM(clsname, a1)
+<% else %>
+#define PICOJSON_DEFINE_PACK_<%= x %>(clsname, <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
+   PICOJSON_DEFINE_PACK_<%= x %>_I_((clsname,  <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>))
+#define PICOJSON_DEFINE_PACK_<%= x %>_I_(tuple) PICOJSON_DEFINE_PACK_<%= x %>_I tuple 
+#define PICOJSON_DEFINE_PACK_<%= x %>_I(clsname, <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
+   PICOJSON_DEFINE_PACK_<%= x - 1 %>(clsname, <%= (1 .. x-1).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
+   PICOJSON_DEFINE_PACK_ITEM(clsname, a<%= x %>)
+#define PICOJSON_DEFINE_UNPACK_<%= x %>(clsname, <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
+   PICOJSON_DEFINE_UNPACK_<%= x %>_I_((clsname,  <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>))
+#define PICOJSON_DEFINE_UNPACK_<%= x %>_I_(tuple) PICOJSON_DEFINE_UNPACK_<%= x %>_I tuple 
+#define PICOJSON_DEFINE_UNPACK_<%= x %>_I(clsname, <%= (1 .. x).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
+   PICOJSON_DEFINE_UNPACK_<%= x - 1 %>(clsname, <%= (1 .. x-1).map{ |i| "a" + i.to_s() }.join(", ") %>) \\
+   PICOJSON_DEFINE_UNPACK_ITEM(clsname, a<%= x %>)
+<% end %>
+<% end %>
+
+#define PICOJSON_DEFINE_PACK_ITEM(clsname, a) \\
+   root.insert( std::make_pair( std::string(#a), picojson::value(a) ) );
+#define PICOJSON_DEFINE_UNPACK_ITEM(clsname, a) \\
+   a = root.at(#a).get < decltype(a) > ();
+   
+#define PICOJSON_DEFINE_I(clsname, N, ...) \\
+   void picojson_pack(picojson::object& root) const { \\
+      PICOJSON_DEFINE_PACK_##N(clsname, __VA_ARGS__) \\
+   }\\
+   void picojson_unpack(picojson::object const& root) { \\
+      PICOJSON_DEFINE_UNPACK_##N(clsname, __VA_ARGS__) \\
+   }
+#define PICOJSON_DEFINE_I_(tuple) PICOJSON_DEFINE_I tuple 
+#define PICOJSON_DEFINE_I__(clsname, N, ...) PICOJSON_DEFINE_I_((clsname, N, __VA_ARGS__)) 
+#define PICOJSON_DEFINE(clsname, ...) \\
+   PICOJSON_DEFINE_I__(clsname, PICOJSON_NUM_VA_ARGS(__VA_ARGS__), __VA_ARGS__)
+
+
+namespace picojson {
+
+template <typename Type>
+void pack(object& root, Type const& val) {
+   val.picojson_pack(root);
+}
+template <typename Type>
+void unpack(object const& root, Type& val) {
+   val.picojson_unpack(root);
+}
+}//namespace picojson;
+
+EOS
+
+erb = ERB.new(contents)
+puts erb.result(binding)
