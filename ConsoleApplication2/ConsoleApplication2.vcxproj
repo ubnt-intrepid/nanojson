@@ -93,7 +93,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style WebKit  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
+      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style LLVM  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -111,7 +111,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style WebKit  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
+      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style LLVM  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -133,7 +133,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style WebKit  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
+      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style LLVM  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,7 +155,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style WebKit  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
+      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style LLVM  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -163,6 +163,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="picojson_helper.erb" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="picojson_helper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
