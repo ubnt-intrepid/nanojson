@@ -15,26 +15,7 @@
 //          + それ以外はstd::stringに変換する
 //
 
-struct sample {
-    double a, b;
-    std::string c;
-    picojson::object node;
-public:
-    sample() = default;
-    sample(double a, double b, std::string c, picojson::object node)
-        : a(a), b(b), c(c), node(node) {}
 
-    friend std::ostream& operator<<(std::ostream& os, sample const& s) {
-        return os << "{ \"a\": " << s.a << ", \"b\": " << s.b 
-                  << ", \"c\": " << s.c << ", \"d\": " << picojson::value(s.node).serialize()
-                  << " }" ;
-    }
-
-    // picojson::objectとの相互変換を行うメンバ変数
-    // picojson_pack(picojson::object&) constと
-    // picojson_unpack(picojson::object const&を定義する
-    PICOJSON_DEFINE(a, b, c, node);
-};
 
 namespace picojson {
 
@@ -132,11 +113,45 @@ auto to_value(T const& val)
 
 }// namespace picojson;
 
+enum class sample3 { a, b, c }; std::ostream& operator<<(std::ostream& os, sample3 s) { return os << "a"; }
+
+struct sample {
+    double a, b;
+    std::string c;
+
+    struct sample_i {
+        int d;
+        std::vector<int> e;
+        sample3 f;
+    public:
+        sample_i() = default;
+        sample_i(int d, std::vector<int> e)
+            : d(d), e(e) {}
+        PICOJSON_DEFINE(d, e, f);
+    };
+    sample_i node;
+
+public:
+    sample() = default;
+    sample(double a, double b, std::string c, int d, std::vector<int> e)
+        : a(a), b(b), c(c), node(d, e) {}
+
+    friend std::ostream& operator<<(std::ostream& os, sample const& s) {
+        return os << "{ \"a\": " << s.a << ", \"b\": " << s.b
+            << ", \"c\": " << s.c << ", \"d\": " << picojson::to_value(s.node).serialize()
+            << " }";
+    }
+
+    // picojson::objectとの相互変換を行うメンバ変数
+    // picojson_pack(picojson::object&) constと
+    // picojson_unpack(picojson::object const&を定義する
+    PICOJSON_DEFINE(a, b, c, node);
+};
+
 class sample2 {friend std::ostream& operator<<(std::ostream& os, sample2 const& s) {return os;}};
 static_assert(picojson::has_member_pack<sample>::value, "");
 static_assert(!picojson::has_member_pack<sample2>::value, "");
 
-enum class sample3 { a,b,c }; std::ostream& operator<<(std::ostream& os, sample3 s) { return os << "a"; }
 
 int main()
 {
@@ -157,11 +172,7 @@ int main()
                                                                 // (old-style enum, and enum class)
 
     // serialization
-    sample s(1, 2, "a", { 
-        std::pair<std::string, picojson::value>(
-            std::string("d"),
-            picojson::value(9.0))
-        });
+    sample s(1, 2, "a", 4, { 1, 2, 3 });
     picojson::value val;
     picojson::pack(val, s);
 
@@ -169,10 +180,10 @@ int main()
     std::cout << val.serialize() << std::endl;
     std::cout << std::endl;
 
-    // deserialization
-    sample s2;
-    picojson::unpack(val, s2);
+    //// deserialization
+    //sample s2;
+    //picojson::unpack(val, s2);
 
-    std::cout << "deserialized: " << std::endl;
-    std::cout << s2 << std::endl;
+    //std::cout << "deserialized: " << std::endl;
+    //std::cout << s2 << std::endl;
 }

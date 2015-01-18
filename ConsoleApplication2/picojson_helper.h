@@ -719,7 +719,7 @@
   PICOJSON_DEFINE_UNPACK_ITEM(obj, a31)
 
 #define PICOJSON_DEFINE_PACK_ITEM(obj, a)                                      \
-  obj.insert(std::make_pair(std::string(#a), picojson::value(a)));
+  obj.insert(std::make_pair(std::string(#a), picojson::to_value(a)));
 #define PICOJSON_DEFINE_UNPACK_ITEM(obj, a) a = obj.at(#a).get<decltype(a)>();
 
 #define PICOJSON_DEFINE_I(N, ...)                                              \
