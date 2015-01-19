@@ -93,7 +93,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style LLVM  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
+      <Command>$(SolutionDir)\preprocess.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -111,7 +111,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style LLVM  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
+      <Command>$(SolutionDir)\preprocess.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -133,7 +133,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style LLVM  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
+      <Command>$(SolutionDir)\preprocess.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,17 +155,17 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>ruby "$(ProjectDir)\picojson_helper.erb" | clang-format -style LLVM  &gt; "$(ProjectDir)\picojson_helper.h"</Command>
+      <Command>$(SolutionDir)\preprocess.bat</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="picojson_helper.erb" />
+    <ClInclude Include="picojson_helper.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="picojson_helper.h" />
+    <None Include="picojson_helper.hpp.erb" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

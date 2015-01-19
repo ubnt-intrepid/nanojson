@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "picojson.h"
-#include "picojson_helper.h"
+#include "picojson_helper.hpp"
 // TODO:
 // * äÓñ{å^(picojson::none, bool, double, std::string, picojson::array, picojson::object)à»äOÇ
 //   ê›íËÇ≈Ç´ÇÈÇÊÇ§Ç…Ç∑ÇÈ
@@ -211,35 +211,35 @@ static_assert(!picojson::detail::has_member_unpack<sample2>::value, "");
 
 int main()
 {
-    auto a1 = picojson::to_value(1.0);                          // double
-    auto a11= picojson::to_value(picojson::array());            // picjoson::array
+    //auto a1 = picojson::to_value(1.0);                          // double
+    //auto a11= picojson::to_value(picojson::array());            // picjoson::array
 
-    auto a21= picojson::to_value(2.0l);                         // long double
-    auto a2 = picojson::to_value(4);                            // int
-    auto a3 = picojson::to_value(6U);                           // unsigned
-    auto a31= picojson::to_value(size_t(0));                    // size_t
+    //auto a21= picojson::to_value(2.0l);                         // long double
+    //auto a2 = picojson::to_value(4);                            // int
+    //auto a3 = picojson::to_value(6U);                           // unsigned
+    //auto a31= picojson::to_value(size_t(0));                    // size_t
 
-    auto a41= picojson::to_value(std::vector<double>{1, 1, 1}); // stl container (only std::vector, not picojson::array)
-    auto a4 = picojson::to_value(std::vector<int>{1, 1, 1});    // stl container (only std::vector, not picojson::array)
+    //auto a41= picojson::to_value(std::vector<double>{1, 1, 1}); // stl container (only std::vector, not picojson::array)
+    //auto a4 = picojson::to_value(std::vector<int>{1, 1, 1});    // stl container (only std::vector, not picojson::array)
 
-    auto a5 = picojson::to_value(sample());                     // user-defined (packable)
+    //auto a5 = picojson::to_value(sample());                     // user-defined (packable)
 
-    auto a6 = picojson::to_value(sample2());                    // user-defined (unpackable, ostreamable)
-    auto a7 = picojson::to_value(sample3::a);                   // enumerate class is user-defined
-                                                                // (old-style enum, and enum class)
+    //auto a6 = picojson::to_value(sample2());                    // user-defined (unpackable, ostreamable)
+    //auto a7 = picojson::to_value(sample3::a);                   // enumerate class is user-defined
+    //                                                            // (old-style enum, and enum class)
 
-    picojson::value v;
-    //double b1;              b1  <<= v;
-    //picojson::array b12 ;   b12 <<= v;
+    //picojson::value v;
+    ////double b1;              b1  <<= v;
+    ////picojson::array b12 ;   b12 <<= v;
 
-    //int b2; b2 <<= v;
+    ////int b2; b2 <<= v;
 
-    //std::vector<int> b3; b3 <<= v;
+    ////std::vector<int> b3; b3 <<= v;
 
-    //sample b4; b4 <<= v;
+    ////sample b4; b4 <<= v;
 
-    //sample2 b5; b5 <<= v;
-    sample3 b6; b6 <<= v;
+    ////sample2 b5; b5 <<= v;
+    //sample3 b6; b6 <<= v;
                                                                
     // serialization
     sample s(1, 2, "a", 4, { 1, 2, 3 });
