@@ -162,6 +162,7 @@
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="picojson.h" />
     <ClInclude Include="picojson_helper.hpp" />
   </ItemGroup>
   <ItemGroup>

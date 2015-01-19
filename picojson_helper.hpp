@@ -1,5 +1,12 @@
 #pragma once
 
+#include <sstream>
+
+#if defined(_MSC_VER)
+#pragma warning(disable : 4002)
+#pragma warning(disable : 4003)
+#endif
+
 // Calculate the count of arguments.
 #define PICOJSON_NUM_VA_ARGS_I(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11,   \
                                _12, _13, _14, _15, _16, _17, _18, _19, _20,    \
@@ -740,56 +747,48 @@
 
 namespace picojson {
 
-template <typename Type> void pack(value &root, Type const &val) {
-  val.picojson_pack(root);
-}
-template <typename Type> void unpack(value const &root, Type &val) {
-  val.picojson_unpack(root);
-}
-
 namespace detail {
 
 template <
-    bool A1, bool A2 = false, bool A3 = false, bool A4 = false, bool A5 = false,
-    bool A6 = false, bool A7 = false, bool A8 = false, bool A9 = false,
-    bool A10 = false, bool A11 = false, bool A12 = false, bool A13 = false,
-    bool A14 = false, bool A15 = false, bool A16 = false, bool A17 = false,
-    bool A18 = false, bool A19 = false, bool A20 = false, bool A21 = false,
-    bool A22 = false, bool A23 = false, bool A24 = false, bool A25 = false,
-    bool A26 = false, bool A27 = false, bool A28 = false, bool A29 = false,
-    bool A30 = false, bool A31 = false>
+    bool A0, bool A1 = false, bool A2 = false, bool A3 = false, bool A4 = false,
+    bool A5 = false, bool A6 = false, bool A7 = false, bool A8 = false,
+    bool A9 = false, bool A10 = false, bool A11 = false, bool A12 = false,
+    bool A13 = false, bool A14 = false, bool A15 = false, bool A16 = false,
+    bool A17 = false, bool A18 = false, bool A19 = false, bool A20 = false,
+    bool A21 = false, bool A22 = false, bool A23 = false, bool A24 = false,
+    bool A25 = false, bool A26 = false, bool A27 = false, bool A28 = false,
+    bool A29 = false, bool A30 = false, bool A31 = false>
     struct or {
   static const bool value =
-      A1 || A2 || A3 || A4 || A5 || A6 || A7 || A8 || A9 || A10 || A11 || A12 ||
-      A13 || A14 || A15 || A16 || A17 || A18 || A19 || A20 || A21 || A22 ||
-      A23 || A24 || A25 || A26 || A27 || A28 || A29 || A30 || A31;
+      A0 || A1 || A2 || A3 || A4 || A5 || A6 || A7 || A8 || A9 || A10 || A11 ||
+      A12 || A13 || A14 || A15 || A16 || A17 || A18 || A19 || A20 || A21 ||
+      A22 || A23 || A24 || A25 || A26 || A27 || A28 || A29 || A30 || A31;
 };
 
-template <bool A1, bool A2 = true, bool A3 = true, bool A4 = true,
-          bool A5 = true, bool A6 = true, bool A7 = true, bool A8 = true,
-          bool A9 = true, bool A10 = true, bool A11 = true, bool A12 = true,
-          bool A13 = true, bool A14 = true, bool A15 = true, bool A16 = true,
-          bool A17 = true, bool A18 = true, bool A19 = true, bool A20 = true,
-          bool A21 = true, bool A22 = true, bool A23 = true, bool A24 = true,
-          bool A25 = true, bool A26 = true, bool A27 = true, bool A28 = true,
-          bool A29 = true, bool A30 = true, bool A31 = true>
+template <bool A0, bool A1 = true, bool A2 = true, bool A3 = true,
+          bool A4 = true, bool A5 = true, bool A6 = true, bool A7 = true,
+          bool A8 = true, bool A9 = true, bool A10 = true, bool A11 = true,
+          bool A12 = true, bool A13 = true, bool A14 = true, bool A15 = true,
+          bool A16 = true, bool A17 = true, bool A18 = true, bool A19 = true,
+          bool A20 = true, bool A21 = true, bool A22 = true, bool A23 = true,
+          bool A24 = true, bool A25 = true, bool A26 = true, bool A27 = true,
+          bool A28 = true, bool A29 = true, bool A30 = true, bool A31 = true>
 struct and {
   static const bool value =
-      A1 && A2 && A3 && A4 && A5 && A6 && A7 && A8 && A9 && A10 && A11 && A12 &&
-      A13 && A14 && A15 && A16 && A17 && A18 && A19 && A20 && A21 && A22 &&
-      A23 && A24 && A25 && A26 && A27 && A28 && A29 && A30 && A31;
+      A0 && A1 && A2 && A3 && A4 && A5 && A6 && A7 && A8 && A9 && A10 && A11 &&
+      A12 && A13 && A14 && A15 && A16 && A17 && A18 && A19 && A20 && A21 &&
+      A22 && A23 && A24 && A25 && A26 && A27 && A28 && A29 && A30 && A31;
 };
 
 template <bool A> struct not{ static const bool value = !A; };
 
-template <typename T> struct is_picojson_type {
-  static const bool value =
-      or <std::is_same<T, picojson::null>::value, std::is_same<T, bool>::value,
-          std::is_same<T, double>::value, std::is_same<T, std::string>::value,
-          std::is_same<T, picojson::array>::value,
-          std::is_same<T, picojson::object>::value,
-          std::is_same<T, picojson::value>::value>::value;
-};
+template <typename T>
+    struct is_picojson_type
+    : or
+      <std::is_same<T, null>::value, std::is_same<T, bool>::value,
+       std::is_same<T, double>::value, std::is_same<T, std::string>::value,
+       std::is_same<T, array>::value, std::is_same<T, object>::value,
+       std::is_same<T, value>::value> {};
 
 template <typename T> struct is_stl_container : std::false_type {};
 template <typename T>
@@ -857,7 +856,7 @@ auto to_value(T const &val)
           value>::type {
   // user defined type (with T::pack(value&) const)
   value root;
-  pack(root, val);
+  val.picojson_pack(root);
   return root;
 }
 

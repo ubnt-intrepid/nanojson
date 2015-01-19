@@ -1,5 +1,12 @@
 #pragma once
 
+#include <sstream>
+
+#if defined(_MSC_VER)
+# pragma warning(disable:4002)
+# pragma warning(disable:4003)
+#endif
+
 <%# 可変長引数の最大次数 %>
 <% MAX_ITER = 31 %>
 <%# 指定個数の引数 %>
@@ -24,21 +31,21 @@ end
       #define PICOJSON_DEFINE_UNPACK_1(obj, a1)  PICOJSON_DEFINE_UNPACK_ITEM(obj, a1)
    <% else %>
       <%# pack %>
-      #define PICOJSON_DEFINE_PACK_<%= n %>(obj, <%= args('a', n) %>)       \
-          PICOJSON_DEFINE_PACK_<%= n %>_I_((obj, <%= args('a', n) %>))
-      #define PICOJSON_DEFINE_PACK_<%= n %>_I_(tuple)                        \
-          PICOJSON_DEFINE_PACK_<%= n %>_I tuple 
-      #define PICOJSON_DEFINE_PACK_<%= n %>_I(obj, <%= args('a', n) %>)     \
-          PICOJSON_DEFINE_PACK_<%= n - 1 %>  (obj, <%= args('a', n - 1) %>) \
-          PICOJSON_DEFINE_PACK_ITEM          (obj, a<%= n %>)
+      #define PICOJSON_DEFINE_PACK_<%=n%>(obj, <%=args('a',n)%>) \
+          PICOJSON_DEFINE_PACK_<%=n%>_I_((obj, <%=args('a',n)%>))
+      #define PICOJSON_DEFINE_PACK_<%=n%>_I_(tuple) \
+          PICOJSON_DEFINE_PACK_<%=n%>_I tuple 
+      #define PICOJSON_DEFINE_PACK_<%=n%>_I(obj, <%=args('a',n)%>) \
+          PICOJSON_DEFINE_PACK_<%=n-1%>  (obj, <%=args('a',n-1)%>) \
+          PICOJSON_DEFINE_PACK_ITEM          (obj, a<%=n%>)
       <%# unpack %>
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>(obj, <%= args('a', n) %>)     \
-          PICOJSON_DEFINE_UNPACK_<%= n %>_I_((obj, <%= args('a', n) %>))
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I_(tuple)                       \
-          PICOJSON_DEFINE_UNPACK_<%= n %>_I tuple 
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I(obj, <%= args('a', n) %>)     \
-          PICOJSON_DEFINE_UNPACK_<%= n - 1 %>  (obj, <%= args('a', n - 1) %>) \
-          PICOJSON_DEFINE_UNPACK_ITEM          (obj, a<%= n %>)
+      #define PICOJSON_DEFINE_UNPACK_<%=n%>(obj, <%=args('a', n) %>) \
+          PICOJSON_DEFINE_UNPACK_<%=n%>_I_((obj, <%=args('a',n) %>))
+      #define PICOJSON_DEFINE_UNPACK_<%=n%>_I_(tuple) \
+          PICOJSON_DEFINE_UNPACK_<%=n%>_I tuple 
+      #define PICOJSON_DEFINE_UNPACK_<%=n%>_I(obj, <%=args('a',n)%>) \
+          PICOJSON_DEFINE_UNPACK_<%=n-1%>  (obj, <%=args('a',n-1)%>) \
+          PICOJSON_DEFINE_UNPACK_ITEM          (obj, a<%=n%>)
    <% end %>
 <% end %>
  
@@ -47,15 +54,15 @@ end
 #define PICOJSON_DEFINE_UNPACK_ITEM(obj, a) \
    a <<= obj.at(#a);
  
-#define PICOJSON_DEFINE_I(N, ...)                                 \
-   void picojson_pack(picojson::value& root) const {              \
-      picojson::object obj;                                       \
-      PICOJSON_DEFINE_PACK_##N(obj, __VA_ARGS__)                  \
-      root.swap(picojson::value(obj));                            \
-   }                                                              \
-   void picojson_unpack(picojson::value const& root) {            \
+#define PICOJSON_DEFINE_I(N, ...) \
+   void picojson_pack(picojson::value& root) const { \
+      picojson::object obj; \
+      PICOJSON_DEFINE_PACK_##N(obj, __VA_ARGS__) \
+      root.swap(picojson::value(obj)); \
+   } \
+   void picojson_unpack(picojson::value const& root) { \
       picojson::object const& obj = root.get<picojson::object>(); \
-      PICOJSON_DEFINE_UNPACK_##N(obj, __VA_ARGS__)                \
+      PICOJSON_DEFINE_UNPACK_##N(obj, __VA_ARGS__) \
    }
 
 #define PICOJSON_DEFINE_I_(tuple) PICOJSON_DEFINE_I tuple 
@@ -66,44 +73,36 @@ end
 
 namespace picojson {
 
-template <typename Type>
-void pack(value& root, Type const& val) {
-   val.picojson_pack(root);
-}
-template <typename Type>
-void unpack(value const& root, Type& val) {
-   val.picojson_unpack(root);
-}
-
 namespace detail {
+
 <%# OR %>
-template<bool A1, <%= (2..MAX_ITER).map{ |i| 'bool A' + i.to_s() + ' = false'}.join(',') %> >
+template<bool A0<% 1.upto(MAX_ITER){|i| %>, bool A<%=i%> = false<%}%>>
 struct or {
-   static const bool value = <%= (1..MAX_ITER).map{|i| 'A'+i.to_s()}.join('||') %>;
+   static const bool value = A0<% 1.upto(MAX_ITER) {|i|%>|| A<%=i%><%}%>;
 };
+
 <%# AND %>
-template<bool A1, <%= (2..MAX_ITER).map{ |i| 'bool A' + i.to_s() + ' = true'}.join(',') %> >
+template<bool A0<% 1.upto(MAX_ITER){|i| %>, bool A<%=i%> = true <%}%>>
 struct and {
-   static const bool value = <%= (1..MAX_ITER).map{|i| 'A'+i.to_s()}.join('&&') %>;
+static const bool value = A0<% 1.upto(MAX_ITER) {|i|%>&& A<%=i%><%}%>;
 };
+
 <%# NOT %>
-template< bool A >
+template<bool A>
 struct not {
    static const bool value = !A;
 };
 
 template <typename T>
-struct is_picojson_type {
-    static const bool value = or< 
-        std::is_same<T, picojson::null>::value,
-        std::is_same<T, bool>::value,
-        std::is_same<T, double>::value,
-        std::is_same<T, std::string>::value,
-        std::is_same<T, picojson::array>::value,
-        std::is_same<T, picojson::object>::value,
-        std::is_same<T, picojson::value>::value
-    >::value;
-};
+struct is_picojson_type : or< 
+  std::is_same<T, null>::value,
+  std::is_same<T, bool>::value,
+  std::is_same<T, double>::value,
+  std::is_same<T, std::string>::value,
+  std::is_same<T, array>::value,
+  std::is_same<T, object>::value,
+  std::is_same<T, value>::value
+> {};
 
 template <typename T>
 struct is_stl_container : std::false_type {};
@@ -186,7 +185,7 @@ auto to_value(T const& val) -> typename std::enable_if<
 {
     // user defined type (with T::pack(value&) const)
     value root;
-    pack(root, val);
+    val.picojson_pack(root);
     return root;
 }
 
