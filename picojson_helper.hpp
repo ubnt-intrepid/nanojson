@@ -787,7 +787,8 @@ template <typename T> struct is_picojson_type {
       or <std::is_same<T, picojson::null>::value, std::is_same<T, bool>::value,
           std::is_same<T, double>::value, std::is_same<T, std::string>::value,
           std::is_same<T, picojson::array>::value,
-          std::is_same<T, picojson::object>::value>::value;
+          std::is_same<T, picojson::object>::value,
+          std::is_same<T, picojson::value>::value>::value;
 };
 
 template <typename T> struct is_stl_container : std::false_type {};
@@ -814,6 +815,116 @@ public:
   static const bool value = (sizeof(func<T>(0)) == sizeof(char));
 };
 
+template <typename T>
+struct is_arithmetic
+    : and<!is_picojson_type<T>::value, std::is_arithmetic<T>::value> {};
+
+template <typename T>
+struct is_user_defined
+    : and<!is_picojson_type<T>::value, !std::is_arithmetic<T>::value,
+          !is_stl_container<T>::value> {};
+
 } // namespace detail;
+
+template <typename T>
+auto to_value(T const &val)
+    -> typename std::enable_if<detail::is_picojson_type<T>::value,
+                               value>::type {
+  return value(val);
+}
+
+template <typename T>
+auto to_value(T const &val)
+    -> typename std::enable_if<detail::is_arithmetic<T>::value, value>::type {
+  return value((double)val);
+}
+
+template <typename T>
+auto to_value(std::vector<T> const &val)
+    -> typename std::enable_if<!std::is_same<T, value>::value, value>::type {
+  // std::vector<T> (T is not picojson::value)
+  array arr;
+  std::transform(std::begin(val), std::end(val), std::back_inserter(arr),
+                 [](T const &v) { return to_value(v); });
+  return value(arr);
+}
+
+template <typename T>
+auto to_value(T const &val)
+    -> typename std::enable_if<
+          detail::and<detail::is_user_defined<T>::value,
+                      detail::has_member_pack<T>::value>::value,
+          value>::type {
+  // user defined type (with T::pack(value&) const)
+  value root;
+  pack(root, val);
+  return root;
+}
+
+template <typename T>
+auto to_value(T const &val)
+    -> typename std::enable_if<
+          detail::and<detail::is_user_defined<T>::value,
+                      !detail::has_member_pack<T>::value>::value,
+          value>::type {
+  // user defined type (without T::pack(value&) const)
+  std::ostringstream sstr;
+  sstr << val;
+  return value(sstr.str());
+}
+
+template <typename T>
+auto operator<<=(T &val, value const &v)
+    -> typename std::enable_if<detail::is_picojson_type<T>::value, T &>::type {
+  val = v.get<T>();
+  return val;
+}
+
+template <typename T>
+auto operator<<=(T &val, value const &v)
+    -> typename std::enable_if<detail::is_arithmetic<T>::value, T &>::type {
+  val = (T)v.get<double>();
+  return val;
+}
+
+template <typename T>
+auto operator<<=(std::vector<T> &val, value const &v)
+    -> typename std::enable_if<!std::is_same<T, value>::value,
+                               std::vector<T> &>::type {
+  // std::vector<T> (T is not picojson::value)
+  array arr = v.get<array>();
+  val.resize(arr.size());
+  std::transform(std::begin(arr), std::end(arr), std::begin(val),
+                 [](value const &v_) -> T {
+    T r;
+    r <<= v_;
+    return r;
+  });
+  return val;
+}
+
+template <typename T>
+auto operator<<=(T &val, value const &v)
+    -> typename std::enable_if<
+          detail::and<detail::is_user_defined<T>::value,
+                      detail::has_member_unpack<T>::value>::value,
+          T &>::type {
+  // user defined type (with T::pack(value&) const)
+  val.picojson_unpack(v);
+  return val;
+}
+
+template <typename T>
+auto operator<<=(T &val, value const &v)
+    -> typename std::enable_if<
+          detail::and<detail::is_user_defined<T>::value,
+                      !detail::has_member_unpack<T>::value>::value,
+          T &>::type {
+  // user defined type (without T::pack(value&) const)
+  std::string str = v.get<std::string>();
+  std::istringstream sstr(str);
+  sstr >> val;
+  return val;
+}
 
 } // namespace picojson;

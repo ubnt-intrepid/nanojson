@@ -166,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="picojson_helper.hpp.erb" />
+    <None Include="preprocess.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

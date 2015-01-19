@@ -1,47 +1,13 @@
-require 'erb'
+#pragma once
 
-# ユーザ定義型をpicojson::objectから変換，picojson::objectに変換するためのメンバ関数を定義する
-# マクロを生成するrubyスクリプト
-# usage
-#   ruby json_helper.erb                     # 標準出力に出力される
-#   ruby json_helper.erb > json_helper.hpp
-# 
-# ...
-# #include "picojson.h"
-# #include "json_helper.hpp"
-#
-# struct sample {
-#    int a, b, c, d;
-#    std::string f;
-# public:
-#    PICOJSON_DEFINE(sample, a, b, c, d, f) // 定義
-# };
-#
-# int main()
-# {
-#     // serialize to picojson::object
-#     sample s;
-#     picojson::object root;
-#     picojson::pack(root, s);
-#
-#     // deserialize from picojson::object
-#     sample s2;
-#     picojson::unpack(root, s2);
-#     std::cout << s2 << std::endl;
-# }
-#
-# 現状JSON_DEFINE()に渡すことのできる型はbool, double, std::string, picojson::null, 
-# picojson::array(=std::vector<picojson::value>), picojson::object(=std::map<picojson::value>)のみ
-
-MAX_ITER = 31  # 可変長引数の最大次数
-
-# 指定個数の引数
+<%# 可変長引数の最大次数 %>
+<% MAX_ITER = 31 %>
+<%# 指定個数の引数 %>
+<%
 def args(name, n)
    (1 .. n).map{ |i| name + i.to_s() }.join(",")
 end 
-
-contents =<<EOS
-#pragma once
+%>
 
 // Calculate the count of arguments.
 #define PICOJSON_NUM_VA_ARGS_I(<%= args('_', MAX_ITER) %>,N,...) N
@@ -58,43 +24,43 @@ contents =<<EOS
       #define PICOJSON_DEFINE_UNPACK_1(obj, a1)  PICOJSON_DEFINE_UNPACK_ITEM(obj, a1)
    <% else %>
       <%# pack %>
-      #define PICOJSON_DEFINE_PACK_<%= n %>(obj, <%= args('a', n) %>)       \\
+      #define PICOJSON_DEFINE_PACK_<%= n %>(obj, <%= args('a', n) %>)       \
           PICOJSON_DEFINE_PACK_<%= n %>_I_((obj, <%= args('a', n) %>))
-      #define PICOJSON_DEFINE_PACK_<%= n %>_I_(tuple)                        \\
+      #define PICOJSON_DEFINE_PACK_<%= n %>_I_(tuple)                        \
           PICOJSON_DEFINE_PACK_<%= n %>_I tuple 
-      #define PICOJSON_DEFINE_PACK_<%= n %>_I(obj, <%= args('a', n) %>)     \\
-          PICOJSON_DEFINE_PACK_<%= n - 1 %>  (obj, <%= args('a', n - 1) %>) \\
+      #define PICOJSON_DEFINE_PACK_<%= n %>_I(obj, <%= args('a', n) %>)     \
+          PICOJSON_DEFINE_PACK_<%= n - 1 %>  (obj, <%= args('a', n - 1) %>) \
           PICOJSON_DEFINE_PACK_ITEM          (obj, a<%= n %>)
       <%# unpack %>
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>(obj, <%= args('a', n) %>)     \\
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>(obj, <%= args('a', n) %>)     \
           PICOJSON_DEFINE_UNPACK_<%= n %>_I_((obj, <%= args('a', n) %>))
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I_(tuple)                       \\
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I_(tuple)                       \
           PICOJSON_DEFINE_UNPACK_<%= n %>_I tuple 
-      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I(obj, <%= args('a', n) %>)     \\
-          PICOJSON_DEFINE_UNPACK_<%= n - 1 %>  (obj, <%= args('a', n - 1) %>) \\
+      #define PICOJSON_DEFINE_UNPACK_<%= n %>_I(obj, <%= args('a', n) %>)     \
+          PICOJSON_DEFINE_UNPACK_<%= n - 1 %>  (obj, <%= args('a', n - 1) %>) \
           PICOJSON_DEFINE_UNPACK_ITEM          (obj, a<%= n %>)
    <% end %>
 <% end %>
  
-#define PICOJSON_DEFINE_PACK_ITEM(obj, a) \\
+#define PICOJSON_DEFINE_PACK_ITEM(obj, a) \
    obj.insert( std::make_pair( std::string(#a), picojson::to_value(a) ) );
-#define PICOJSON_DEFINE_UNPACK_ITEM(obj, a) \\
+#define PICOJSON_DEFINE_UNPACK_ITEM(obj, a) \
    a <<= obj.at(#a);
  
-#define PICOJSON_DEFINE_I(N, ...)                                 \\
-   void picojson_pack(picojson::value& root) const {              \\
-      picojson::object obj;                                       \\
-      PICOJSON_DEFINE_PACK_##N(obj, __VA_ARGS__)                  \\
-      root.swap(picojson::value(obj));                            \\
-   }                                                              \\
-   void picojson_unpack(picojson::value const& root) {            \\
-      picojson::object const& obj = root.get<picojson::object>(); \\
-      PICOJSON_DEFINE_UNPACK_##N(obj, __VA_ARGS__)                \\
+#define PICOJSON_DEFINE_I(N, ...)                                 \
+   void picojson_pack(picojson::value& root) const {              \
+      picojson::object obj;                                       \
+      PICOJSON_DEFINE_PACK_##N(obj, __VA_ARGS__)                  \
+      root.swap(picojson::value(obj));                            \
+   }                                                              \
+   void picojson_unpack(picojson::value const& root) {            \
+      picojson::object const& obj = root.get<picojson::object>(); \
+      PICOJSON_DEFINE_UNPACK_##N(obj, __VA_ARGS__)                \
    }
 
 #define PICOJSON_DEFINE_I_(tuple) PICOJSON_DEFINE_I tuple 
 #define PICOJSON_DEFINE_I__(N, ...) PICOJSON_DEFINE_I_((N, __VA_ARGS__)) 
-#define PICOJSON_DEFINE(...) \\
+#define PICOJSON_DEFINE(...) \
    PICOJSON_DEFINE_I__(PICOJSON_NUM_VA_ARGS(__VA_ARGS__), __VA_ARGS__)
    
 
@@ -134,7 +100,8 @@ struct is_picojson_type {
         std::is_same<T, double>::value,
         std::is_same<T, std::string>::value,
         std::is_same<T, picojson::array>::value,
-        std::is_same<T, picojson::object>::value
+        std::is_same<T, picojson::object>::value,
+        std::is_same<T, picojson::value>::value
     >::value;
 };
 
@@ -165,11 +132,137 @@ public:
     static const bool value = (sizeof(func<T>(0)) == sizeof(char));
 };
 
+template <typename T>
+struct is_arithmetic : and<
+   !is_picojson_type<T>::value,
+   std::is_arithmetic<T>::value
+> {};
+
+template <typename T>
+struct is_user_defined : and<
+   !is_picojson_type<T>::value,
+   !std::is_arithmetic<T>::value,
+   !is_stl_container<T>::value
+> {};
+
 }//namespace detail;
 
-}//namespace picojson;
 
-EOS
+template <typename T>
+auto to_value(T const& val) -> typename std::enable_if<
+    detail::is_picojson_type<T>::value
+, value>::type
+{
+    return value(val);
+}
 
-erb = ERB.new(contents)
-puts erb.result(binding)
+template <typename T>
+auto to_value(T const& val) -> typename std::enable_if<
+    detail::is_arithmetic<T>::value
+, value>::type
+{
+    return value((double)val);
+}
+
+template <typename T>
+auto to_value(std::vector<T> const& val) -> typename std::enable_if<
+    !std::is_same<T, value>::value
+, value>::type
+{
+    // std::vector<T> (T is not picojson::value)
+    array arr;
+    std::transform(std::begin(val), std::end(val), std::back_inserter(arr),
+                   [](T const& v){ return to_value(v); });
+    return value(arr);
+}
+
+template <typename T>
+auto to_value(T const& val) -> typename std::enable_if<
+    detail::and<
+        detail::is_user_defined<T>::value,
+        detail::has_member_pack<T>::value
+    >::value
+, value>::type
+{
+    // user defined type (with T::pack(value&) const)
+    value root;
+    pack(root, val);
+    return root;
+}
+
+template <typename T>
+auto to_value(T const& val) -> typename std::enable_if<
+    detail::and<
+        detail::is_user_defined<T>::value,
+       !detail::has_member_pack<T>::value
+    >::value
+, value >::type
+{
+    // user defined type (without T::pack(value&) const)
+    std::ostringstream sstr;
+    sstr << val;
+    return value(sstr.str());
+}
+
+
+template <typename T>
+auto operator <<= (T& val, value const& v) -> typename std::enable_if<
+    detail::is_picojson_type<T>::value
+, T&>::type
+{
+    val = v.get<T>();
+    return val;
+}
+
+template <typename T>
+auto operator <<= (T& val, value const& v) -> typename std::enable_if<
+    detail::is_arithmetic<T>::value
+, T&>::type
+{
+    val = (T)v.get<double>();
+    return val;
+}
+
+template <typename T>
+auto operator <<= (std::vector<T>& val, value const& v) -> typename std::enable_if<
+    !std::is_same<T, value>::value
+, std::vector<T>&>::type
+{
+    // std::vector<T> (T is not picojson::value)
+    array arr = v.get<array>();
+    val.resize(arr.size());
+    std::transform(std::begin(arr), std::end(arr), std::begin(val), 
+            [](value const& v_)->T{ T r; r <<= v_; return r; });
+    return val;
+}
+
+template <typename T>
+auto operator <<= (T& val, value const& v) -> typename std::enable_if<
+    detail::and<
+        detail::is_user_defined<T>::value,
+        detail::has_member_unpack<T>::value
+    >::value
+, T&>::type
+{
+    // user defined type (with T::pack(value&) const)
+    val.picojson_unpack(v);
+    return val;
+}
+
+template <typename T>
+auto operator <<= (T& val, value const& v) -> typename std::enable_if<
+    detail::and<
+         detail::is_user_defined<T>::value,
+        !detail::has_member_unpack<T>::value
+    >::value
+, T&>::type
+{
+    // user defined type (without T::pack(value&) const)
+    std::string str = v.get<std::string>();
+    std::istringstream sstr(str);
+    sstr >> val;
+    return val;
+}
+
+}// namespace picojson;
+

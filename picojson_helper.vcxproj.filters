@@ -28,5 +28,8 @@
     <None Include="picojson_helper.hpp.erb">
       <Filter>リソース ファイル</Filter>
     </None>
+    <None Include="preprocess.bat">
+      <Filter>リソース ファイル</Filter>
+    </None>
   </ItemGroup>
 </Project>
