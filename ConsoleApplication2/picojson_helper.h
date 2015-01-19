@@ -720,7 +720,7 @@
 
 #define PICOJSON_DEFINE_PACK_ITEM(obj, a)                                      \
   obj.insert(std::make_pair(std::string(#a), picojson::to_value(a)));
-#define PICOJSON_DEFINE_UNPACK_ITEM(obj, a) a = obj.at(#a).get<decltype(a)>();
+#define PICOJSON_DEFINE_UNPACK_ITEM(obj, a) a <<= obj.at(#a);
 
 #define PICOJSON_DEFINE_I(N, ...)                                              \
   void picojson_pack(picojson::value &root) const {                            \
@@ -789,6 +789,31 @@ template <typename T> struct is_picojson_type {
           std::is_same<T, picojson::array>::value,
           std::is_same<T, picojson::object>::value>::value;
 };
+
+template <typename T> struct is_stl_container : std::false_type {};
+template <typename T>
+struct is_stl_container<std::vector<T>> : std::true_type {};
+
+template <typename T> class has_member_pack {
+  template <typename U, void (U::*)(value &) const> struct Check;
+  template <typename U> static char func(Check<U, &U::picojson_pack> *);
+  template <typename U> static int func(...);
+
+public:
+  typedef has_member_pack type;
+  static const bool value = (sizeof(func<T>(0)) == sizeof(char));
+};
+
+template <typename T> class has_member_unpack {
+  template <typename U, void (U::*)(value const &)> struct Check;
+  template <typename U> static char func(Check<U, &U::picojson_unpack> *);
+  template <typename U> static int func(...);
+
+public:
+  typedef has_member_unpack type;
+  static const bool value = (sizeof(func<T>(0)) == sizeof(char));
+};
+
 } // namespace detail;
 
 } // namespace picojson;
