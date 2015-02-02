@@ -23,7 +23,7 @@
     <ClInclude Include="picojson_helper.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="picojson.h">
+    <ClInclude Include="picojson\picojson.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

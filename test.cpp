@@ -4,7 +4,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "picojson.h"
+#include "picojson/picojson.h"
 #include "picojson_helper.hpp"
 // TODO:
 // * 基本型(picojson::none, bool, double, std::string, picojson::array,
@@ -22,27 +22,19 @@ struct sample {
    enum class sample3 { a, b, c };
    friend std::ostream& operator<<(std::ostream& os, sample3 s)
    {
-      if (s == sample3::a) {
-         return os << "a";
-      } else if (s == sample3::b) {
-         return os << "b";
-      } else if (s == sample3::c) {
-         return os << "c";
-      } else {
-         throw std::invalid_argument("bad cast: sample::sample3");
-      }
+      if      (s == sample3::a) { return os << "a"; }
+      else if (s == sample3::b) { return os << "b"; }
+      else if (s == sample3::c) { return os << "c"; }
+      else throw std::bad_cast("sample::sample3");
    }
    friend std::istream& operator>>(std::istream& is, sample3& s)
    {
       std::string src;
       is >> src;
-      if (src == "a") {
-         s = sample3::a;
-      } else if (src == "b") {
-         s = sample3::b;
-      } else if (src == "c") {
-         s = sample3::c;
-      }
+      if      (src == "a") { s = sample3::a; }
+      else if (src == "b") { s = sample3::b; }
+      else if (src == "c") { s = sample3::c; }
+      else throw std::bad_cast("sample::sample3");
       return is;
    }
 
