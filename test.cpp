@@ -1,24 +1,13 @@
 ﻿#include <iostream>
 #include <string>
-#include <type_traits>
 #include <sstream>
 #include <stdexcept>
 
 #include "picojson/picojson.h"
 #include "picojson_helper.hpp"
-// TODO:
-// * 基本型(picojson::none, bool, double, std::string, picojson::array,
-// picojson::object)以外を
-//   設定できるようにする
-//      - 整数型(int, size_t, etc.)
-//      - STL container (std::vector, std::list, ...), std::pair, std::tuple
-//      - ユーザ定義型
-//          + picojson_pack(),
-//          picojson_unpack()が定義されている場合はそれを用いる
-//          + それ以外はstd::stringに変換する
-//
 
-struct sample {
+struct sample
+{
    enum class sample3 { a, b, c };
    friend std::ostream& operator<<(std::ostream& os, sample3 s)
    {
@@ -64,26 +53,29 @@ struct sample {
 
    friend std::ostream& operator<<(std::ostream& os, sample const& s)
    {
-      using picojson::to_value;
+      picojson::value v;
+      picojson::to_value(v, s.node);
       return os << "{ \"a\": " << s.a << ", \"b\": " << s.b
                 << ", \"c\": " << s.c
-                << ", \"d\": " << to_value(s.node).serialize() << " }";
+                << ", \"d\": " << v.serialize() << " }";
    }
 };
 
 int main()
 {
    // serialization
-   sample s(1, 2, "a", 4, {1, 2, 3}, sample::sample3::b);
-   picojson::value val = picojson::to_value(s);
+   sample target(1, 2, "a", 4, {1, 2, 3}, sample::sample3::b);
+   picojson::value val;
+   picojson::to_value(val, target);
 
    std::cout << "serialized: " << std::endl;
    std::cout << val.serialize() << std::endl;
    std::cout << std::endl;
 
    // deserialization
-   sample s2; s2 <<= val;
+   sample dest;
+   picojson::from_value(dest, val);
 
    std::cout << "deserialized: " << std::endl;
-   std::cout << s2 << std::endl;
+   std::cout << dest << std::endl;
 }
