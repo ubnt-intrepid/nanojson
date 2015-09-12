@@ -1,16 +1,16 @@
-/* 
+/*
  * Copyright (c) 2015 Yusuke Sasaki
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,13 +26,15 @@
 #include <type_traits>
 #include <tuple>
 #include <memory>
-#include <picojson.h>
+#include "picojson/picojson.h"
 
 
 // Calculate the count of arguments.
 #define NANOJSON_LEN_ARGS(...) \
     std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value
 
+
+// Adapt user-defined struct to JSON-able type
 #define NANOJSON_ADAPT(...)                         \
     void assign(nanojson::array const& src) {       \
         nanojson::assign(src, __VA_ARGS__);         \
@@ -46,57 +48,21 @@
 namespace nanojson {
     using namespace picojson;
 
-    template <typename T>
-    inline value make_value(T const& val)
-    {
-        return detail::json_traits<T>::make_value(val);
-    }
-
-    inline value make_value() {
-        return value();    // null
-    }
+    // forward declarations
 
     template <typename T>
-    inline value make_value(std::initializer_list<T> val)
-    {
-        return make_value(std::vector<T>(val));
-    }
+    value make_value(T const& v);
+
+    template <typename T>
+    std::unique_ptr<T> get(value const& v);
+
+    template <typename T>
+    bool get(value const& v, T& dst);
 
     template <typename... Args>
-    value make_value(Args const&... src)
-    {
-        return make_value({ nanojson::make_value(src)... });
-    }
+    void assign(array const& src, Args&... dst);
 
-
-    template <typename T = double>
-    std::unique_ptr<T> get(value const& v) {
-        if (v.is<null>())
-            return std::unique_ptr<T>();
-        else {
-            T val;
-            detail::json_traits<T>::get(v, val);
-            return std::make_unique<T>(std::move(val));
-        }
-    }
-
-    template <typename T>
-    bool get(value const& v, T& dst) {
-        if (v.is<null>())
-            return false;
-
-        detail::json_traits<T>::get(v, dst);
-        return true;
-    }
-
-    template <typename... Args>
-    void assign(array const& src, Args&... dst)
-    {
-        assert(src.size() == sizeof...(Args));
-        detail::assign_impl<0, sizeof...(Args)>::apply(src, dst...);
-    }
-
-} // namespace json;
+} // namespace nanojson;
 
 
 namespace nanojson { namespace detail {
@@ -106,14 +72,14 @@ namespace nanojson { namespace detail {
 
 #define IS_JSON_TYPE(type) \
     template <> \
-    struct is_json_type<##type##> : std::true_type {}
+    struct is_json_type<type> : std::true_type {}
 
-    IS_JSON_TYPE(null);
+    IS_JSON_TYPE(nanojson::null);
     IS_JSON_TYPE(bool);
     IS_JSON_TYPE(double);
     IS_JSON_TYPE(std::string);
-    IS_JSON_TYPE(array);
-    IS_JSON_TYPE(object);
+    IS_JSON_TYPE(nanojson::array);
+    IS_JSON_TYPE(nanojson::object);
 
 #undef IS_JSON_TYPE
 
@@ -172,6 +138,14 @@ namespace nanojson { namespace detail {
         }
     };
 
+    template <std::size_t N>
+    struct json_traits<char[N]>
+    {
+        inline static value make_value(char const* val) {
+            return value(val, N - 1);
+        }
+    };
+
     template <typename T>
     struct json_traits<std::vector<T>>
     {
@@ -181,7 +155,7 @@ namespace nanojson { namespace detail {
                            [](T const& it){ return nanojson::make_value(it); });
             return value(dst);
         }
-        
+
         static void get(value const& v, std::vector<T>& dst) {
             array src = v.get<array>();
             dst.resize(src.size());
@@ -245,3 +219,58 @@ namespace nanojson { namespace detail {
     };
 
 } } // namespace json::detail;
+
+
+namespace nanojson {
+
+    template <typename T>
+    inline value make_value(T const& val)
+    {
+        return detail::json_traits<T>::make_value(val);
+    }
+
+    inline value make_value() {
+        return value();    // null
+    }
+
+    template <typename T>
+    inline value make_value(std::initializer_list<T> val)
+    {
+        return make_value(std::vector<T>(val));
+    }
+
+    template <typename... Args>
+    value make_value(Args const&... src)
+    {
+        return make_value({ nanojson::make_value(src)... });
+    }
+
+
+    template <typename T = double>
+    std::unique_ptr<T> get(value const& v) {
+        if (v.is<null>())
+            return std::unique_ptr<T>();
+        else {
+            T val;
+            detail::json_traits<T>::get(v, val);
+            return std::unique_ptr<T>(new T(std::move(val)));
+        }
+    }
+
+    template <typename T>
+    bool get(value const& v, T& dst) {
+        if (v.is<null>())
+            return false;
+
+        detail::json_traits<T>::get(v, dst);
+        return true;
+    }
+
+    template <typename... Args>
+    void assign(array const& src, Args&... dst)
+    {
+        assert(src.size() == sizeof...(Args));
+        detail::assign_impl<0, sizeof...(Args)>::apply(src, dst...);
+    }
+
+} // namespace json;
