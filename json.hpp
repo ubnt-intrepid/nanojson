@@ -33,6 +33,15 @@
 #define JSON_ARGS_LEN(...) \
     std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value
 
+#define JSON_ADAPT(...)                         \
+    void assign(json::array const& src) {       \
+        json::assign(src, __VA_ARGS__);         \
+    }                                           \
+                                                \
+    json::value as_json() const {               \
+        return json::make_value(__VA_ARGS__);   \
+    }
+
 
 namespace json {
     using namespace picojson;
@@ -53,6 +62,12 @@ namespace json {
         return make_value(std::vector<T>(val));
     }
 
+    template <typename... Args>
+    value make_value(Args const&... src)
+    {
+        return make_value({ json::make_value(src)... });
+    }
+
 
     template <typename T = double>
     std::unique_ptr<T> get(value const& v) {
@@ -66,12 +81,19 @@ namespace json {
     }
 
     template <typename T>
-    bool assign(value const& v, T& dst) {
+    bool get(value const& v, T& dst) {
         if (v.is<null>())
             return false;
 
         detail::json_traits<T>::get(v, dst);
         return true;
+    }
+
+    template <typename... Args>
+    void assign(array const& src, Args&... dst)
+    {
+        assert(src.size() == sizeof...(Args));
+        detail::assign_impl<0, sizeof...(Args)>::apply(src, dst...);
     }
 
 } // namespace json;
@@ -99,12 +121,24 @@ namespace json { namespace detail {
     using is_arithmetic = std::integral_constant<bool,
         std::is_arithmetic<T>::value && !is_json_type<T>::value>;
 
+    template <std::size_t Lhs, std::size_t Rhs>
+    struct less_than { static const bool value = Lhs < Rhs; };
+
     template <typename Pred, typename T = void>
     using enable_if = typename std::enable_if<Pred::value, T>::type;
 
 
     template <typename T, typename Enable = void>
-    struct json_traits {};
+    struct json_traits {
+        // user-defined type
+        inline static value make_value(T const& v) {
+            return v.as_json();
+        }
+
+        inline static void get(value const& v, T& dst) {
+            dst.assign(v.get<array>());
+        }
+    };
 
     template <typename T>
     struct json_traits<T, enable_if<is_json_type<T>>>
@@ -159,6 +193,14 @@ namespace json { namespace detail {
         }
     };
 
+    template <>
+    struct json_traits<array>
+    {
+        inline static value make_value(array const& val) {
+            return value(val);
+        }
+    };
+
     template <typename Key, typename Val>
     struct json_traits<std::map<Key, Val>>
     {
@@ -177,6 +219,28 @@ namespace json { namespace detail {
                 auto i = json::get<Val>(itm.second);
                 dst.insert(std::make_pair(itm.first, i ? *i : static_cast<Val>(0)));
             }
+        }
+    };
+
+
+    template <std::size_t Idx, std::size_t N, class = void>
+    struct assign_impl
+    {
+        template <typename... Args>
+        static void apply(json::array const&, Args&...) {}
+    };
+
+    template <std::size_t Idx, std::size_t N>
+    struct assign_impl<Idx, N, enable_if<less_than<Idx, N>>>
+    {
+        template <typename... Args>
+        static void apply(json::array const& src, Args&... args)
+        {
+            using element_type =
+                typename std::tuple_element<Idx, std::tuple<Args...>>::type;
+            json::get<element_type>(src.at(Idx), std::get<Idx>(std::tie(args...)));
+
+            assign_impl<Idx + 1, N>::apply(src, args...);
         }
     };
 

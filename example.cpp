@@ -103,18 +103,48 @@ void test_map()
     assert(ret->at("cc") == 2);
 }
 
-void test_assign()
+void test_get()
 {
     json::value v;
     double x;
-    bool not_null_ = json::assign(v, x);
+    bool not_null_ = json::get(v, x);
     assert(!not_null_);
 
     v = json::value(1.0);
     double a;
-    bool not_null = json::assign(v, a);
+    bool not_null = json::get(v, a);
     assert(not_null);
     assert(a == 1.0);
+}
+
+void test_assign()
+{
+    json::array arr = json::make_value({ 1, 2, 3 }).get<json::array>();
+
+    int a, b, c;
+    json::assign(arr, a, b, c);
+    assert(a == 1);
+    assert(b == 2);
+    assert(c == 3);
+}
+
+void test_user_defined()
+{
+    struct TestClass {
+        int a, b;
+        std::string c;
+    public:
+        JSON_ADAPT(a, b, c);
+    };
+
+    json::value v = json::make_value(TestClass{ 1, 4, "hogehoge" });
+    assert(v.is<json::array>());
+
+    auto ret = json::get<TestClass>(v);
+    assert((bool)ret);
+    assert(ret->a == 1);
+    assert(ret->b == 4);
+    assert(ret->c == "hogehoge");
 }
 
 int main()
@@ -128,5 +158,7 @@ int main()
     test_primitive();
     test_array();
     test_map();
+    test_get();
     test_assign();
+    test_user_defined();
 }
