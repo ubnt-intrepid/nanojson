@@ -167,10 +167,10 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="json.hpp" />
+    <ClInclude Include="nanojson.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="example.cpp" />
+    <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

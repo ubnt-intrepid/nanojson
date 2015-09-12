@@ -1,5 +1,5 @@
-picojson helper
-===============
+nanojson
+========
 
 Overview
 ---------
@@ -9,45 +9,42 @@ Overview
 Example
 -------
 
+
 .. code:: cpp 
 
     #include <iostream>
     #include <string>
-
-    #include "picojson/picojson.h"
-    #include "picojson_helper.hpp"
+    #include <memory>
+    #include "nanojson.hpp"
+    using namespace std;
 
     struct sample
     {
+        double a, b;
+        string c;
+    
     public:
-       double a, b;
-       std::string c;
-       
-       PICOJSON_DEFINE(a, b, c, node);
-
-    public:
-       sample() = default;
-       sample(double a, double b, std::string c)
-           : a(a), b(b), c(c)
-       {
-       }
+        NANOJSON_ADAPT(a, b, c);
+        friend ostream& operator<<(ostream& os, sample const& s) {
+            // ...
+        }
     };
 
     int main()
     {
-       // serialization
-       sample target(1, 2, "a");
-       picojson::value val;
-       picojson::to_value(val, target);
+        // serialize to JSON string
+        sample target {1, 2, "a"};
+        nanojson::value val = nanojson::make_value(target);
+        string serialized = val.serialize();
+ 
+        cout << "serialized: " << endl;
+        cout << serialized << endl;
+        cout << endl;
 
-       std::cout << "serialized: " << std::endl;
-       std::cout << val.serialize() << std::endl;
-       std::cout << std::endl;
+        // deserialization from JSON string
+        std::string err;
+        unique_ptr<sample> dest = nanojson::parse(serialized, err);
 
-       // deserialization
-       sample dest;
-       picojson::from_value(dest, val);
-
-       std::cout << "deserialized: " << std::endl;
-       std::cout << dest << std::endl;
+        cout << "deserialized: " << endl;
+        cout << dest << endl;
     }

@@ -30,20 +30,20 @@
 
 
 // Calculate the count of arguments.
-#define JSON_ARGS_LEN(...) \
+#define NANOJSON_LEN_ARGS(...) \
     std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value
 
-#define JSON_ADAPT(...)                         \
-    void assign(json::array const& src) {       \
-        json::assign(src, __VA_ARGS__);         \
-    }                                           \
-                                                \
-    json::value as_json() const {               \
-        return json::make_value(__VA_ARGS__);   \
+#define NANOJSON_ADAPT(...)                         \
+    void assign(nanojson::array const& src) {       \
+        nanojson::assign(src, __VA_ARGS__);         \
+    }                                               \
+                                                    \
+    nanojson::value as_json() const {               \
+        return nanojson::make_value(__VA_ARGS__);   \
     }
 
 
-namespace json {
+namespace nanojson {
     using namespace picojson;
 
     template <typename T>
@@ -65,7 +65,7 @@ namespace json {
     template <typename... Args>
     value make_value(Args const&... src)
     {
-        return make_value({ json::make_value(src)... });
+        return make_value({ nanojson::make_value(src)... });
     }
 
 
@@ -99,7 +99,7 @@ namespace json {
 } // namespace json;
 
 
-namespace json { namespace detail {
+namespace nanojson { namespace detail {
 
     template <typename T>
     struct is_json_type : std::false_type {};
@@ -178,7 +178,7 @@ namespace json { namespace detail {
         static value make_value(std::vector<T> const& val) {
             array dst(val.size());
             std::transform(std::begin(val), std::end(val), std::begin(dst),
-                           [](T const& it){ return json::make_value(it); });
+                           [](T const& it){ return nanojson::make_value(it); });
             return value(dst);
         }
         
@@ -187,7 +187,7 @@ namespace json { namespace detail {
             dst.resize(src.size());
             std::transform(std::begin(src), std::end(src), std::begin(dst),
                 [](value const& itm) {
-                    auto i = json::get<T>(itm);
+                    auto i = nanojson::get<T>(itm);
                     return i ? *i : static_cast<T>(0);
                 });
         }
@@ -208,7 +208,7 @@ namespace json { namespace detail {
             object dst;
             using value_type = typename std::map<Key, Val>::value_type;
             for (value_type const& it : val) {
-                dst.insert(std::make_pair(it.first, json::make_value(it.second)));
+                dst.insert(std::make_pair(it.first, nanojson::make_value(it.second)));
             }
             return value(dst);
         }
@@ -216,7 +216,7 @@ namespace json { namespace detail {
         static void get(value const& v, std::map<Key, Val>& dst) {
             object src = v.get<object>();
             for (auto& itm : src) {
-                auto i = json::get<Val>(itm.second);
+                auto i = nanojson::get<Val>(itm.second);
                 dst.insert(std::make_pair(itm.first, i ? *i : static_cast<Val>(0)));
             }
         }
@@ -227,18 +227,18 @@ namespace json { namespace detail {
     struct assign_impl
     {
         template <typename... Args>
-        static void apply(json::array const&, Args&...) {}
+        static void apply(nanojson::array const&, Args&...) {}
     };
 
     template <std::size_t Idx, std::size_t N>
     struct assign_impl<Idx, N, enable_if<less_than<Idx, N>>>
     {
         template <typename... Args>
-        static void apply(json::array const& src, Args&... args)
+        static void apply(nanojson::array const& src, Args&... args)
         {
             using element_type =
                 typename std::tuple_element<Idx, std::tuple<Args...>>::type;
-            json::get<element_type>(src.at(Idx), std::get<Idx>(std::tie(args...)));
+            nanojson::get<element_type>(src.at(Idx), std::get<Idx>(std::tie(args...)));
 
             assign_impl<Idx + 1, N>::apply(src, args...);
         }

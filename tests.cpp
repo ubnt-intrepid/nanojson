@@ -1,71 +1,71 @@
 ﻿#include <iostream>
 #include <cassert>
-#include "json.hpp"
+#include "nanojson.hpp"
 
 
 void test_primitive()
 {
-    json::value v;
+    nanojson::value v;
 
     // null value
-    v = json::make_value();
-    assert(v.is<json::null>());
-    assert(!(json::get<double>(v)));
+    v = nanojson::make_value();
+    assert(v.is<nanojson::null>());
+    assert(!(nanojson::get<double>(v)));
 
     // boolean
     {
-        v = json::make_value(false);
+        v = nanojson::make_value(false);
         assert(v.is<bool>());
         
-        auto ret = json::get<bool>(v);
+        auto ret = nanojson::get<bool>(v);
         assert((bool)ret);
         assert(*ret == false);
     }
 
     // integer
     {
-        v = json::make_value(5);
+        v = nanojson::make_value(5);
         assert(v.is<double>());
 
-        auto ret = json::get<int>(v);
+        auto ret = nanojson::get<int>(v);
         assert((bool)ret);
         assert(*ret == 5);
     }
 
     // floating point
     {
-        v = json::make_value(3.14); // double
+        v = nanojson::make_value(3.14); // double
         assert(v.is<double>());
 
-        auto ret = json::get<double>(v);
+        auto ret = nanojson::get<double>(v);
         assert((bool)ret);
         assert(*ret == 3.14);
     }
 
     {
-        v = json::make_value(3.14f); // float
+        v = nanojson::make_value(3.14f); // float
         assert(v.is<double>());
 
-        auto ret = json::get<float>(v);
+        auto ret = nanojson::get<float>(v);
         assert((bool)ret);
         assert(*ret == 3.14f);
     }
 
     // string
     {
-        v = json::make_value("hogehoge");
+        v = nanojson::make_value("hogehoge");
         assert(v.is<std::string>());
 
-        auto ret = json::get<std::string>(v);
+        auto ret = nanojson::get<std::string>(v);
         assert((bool)ret);
         assert(*ret == "hogehoge");
     }
 
     {
-        v = json::make_value(std::string("fuga"));
+        v = nanojson::make_value(std::string("fuga"));
         assert(v.is<std::string>());
 
-        auto ret = json::get<std::string>(v);
+        auto ret = nanojson::get<std::string>(v);
         assert((bool)ret);
         assert(*ret == "fuga");
     }
@@ -73,12 +73,12 @@ void test_primitive()
 
 void test_array()
 {
-    json::value v = json::make_value({ 1, 2, 3 });
-    assert(v.is<json::array>());
+    nanojson::value v = nanojson::make_value({ 1, 2, 3 });
+    assert(v.is<nanojson::array>());
     
     //std::cout << v.serialize(true) << std::endl;
 
-    auto ret = json::get<std::vector<int>>(v);
+    auto ret = nanojson::get<std::vector<int>>(v);
     assert((bool)ret);
     assert(ret->size() == 3);
     assert(ret->at(0) == 1);
@@ -88,14 +88,14 @@ void test_array()
 
 void test_map()
 {
-    json::value v = json::make_value(std::map<std::string, int>{
+    nanojson::value v = nanojson::make_value(std::map<std::string, int>{
         { "aa", 1 },
         { "bb", 3 },
         { "cc", 2 },
     });
-    assert(v.is<json::object>());
+    assert(v.is<nanojson::object>());
 
-    auto ret = json::get<std::map<std::string, int>>(v);
+    auto ret = nanojson::get<std::map<std::string, int>>(v);
     assert((bool)ret);
     assert(ret->size() == 3);
     assert(ret->at("aa") == 1);
@@ -105,24 +105,24 @@ void test_map()
 
 void test_get()
 {
-    json::value v;
+    nanojson::value v;
     double x;
-    bool not_null_ = json::get(v, x);
+    bool not_null_ = nanojson::get(v, x);
     assert(!not_null_);
 
-    v = json::value(1.0);
+    v = nanojson::value(1.0);
     double a;
-    bool not_null = json::get(v, a);
+    bool not_null = nanojson::get(v, a);
     assert(not_null);
     assert(a == 1.0);
 }
 
 void test_assign()
 {
-    json::array arr = json::make_value({ 1, 2, 3 }).get<json::array>();
+    nanojson::array arr = nanojson::make_value({ 1, 2, 3 }).get<nanojson::array>();
 
     int a, b, c;
-    json::assign(arr, a, b, c);
+    nanojson::assign(arr, a, b, c);
     assert(a == 1);
     assert(b == 2);
     assert(c == 3);
@@ -134,13 +134,13 @@ void test_user_defined()
         int a, b;
         std::string c;
     public:
-        JSON_ADAPT(a, b, c);
+        NANOJSON_ADAPT(a, b, c);
     };
 
-    json::value v = json::make_value(TestClass{ 1, 4, "hogehoge" });
-    assert(v.is<json::array>());
+    nanojson::value v = nanojson::make_value(TestClass{ 1, 4, "hogehoge" });
+    assert(v.is<nanojson::array>());
 
-    auto ret = json::get<TestClass>(v);
+    auto ret = nanojson::get<TestClass>(v);
     assert((bool)ret);
     assert(ret->a == 1);
     assert(ret->b == 4);
@@ -150,7 +150,7 @@ void test_user_defined()
 int main()
 {
     int a,b,c;
-    static_assert(JSON_ARGS_LEN(a,b,c) == 3, "");
+    static_assert(NANOJSON_LEN_ARGS(a,b,c) == 3, "");
     static_cast<void>(a);
     static_cast<void>(b);
     static_cast<void>(c);
