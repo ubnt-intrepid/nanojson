@@ -56,9 +56,13 @@ namespace json {
 
     template <typename T = double>
     std::unique_ptr<T> get(value const& v) {
-        return v.is<null>()
-            ? std::unique_ptr<T>()
-            : std::make_unique<T>(detail::json_traits<T>::get(v));
+        if (v.is<null>())
+            return std::unique_ptr<T>();
+        else {
+            T val;
+            detail::json_traits<T>::get(v, val);
+            return std::make_unique<T>(std::move(val));
+        }
     }
 
 } // namespace json;
@@ -100,8 +104,8 @@ namespace json { namespace detail {
             return value(v);
         }
 
-        inline static T get(value const& v) {
-            return v.get<T>();
+        inline static void get(value const& v, T& dst) {
+            dst = v.get<T>();
         }
     };
 
@@ -112,8 +116,8 @@ namespace json { namespace detail {
             return value(static_cast<double>(v));
         }
 
-        inline static T get(value const& v) {
-            return static_cast<T>(v.get<double>());
+        inline static void get(value const& v, T& dst) {
+            dst = static_cast<T>(v.get<double>());
         }
     };
 
@@ -135,15 +139,14 @@ namespace json { namespace detail {
             return value(dst);
         }
         
-        static std::vector<T> get(value const& v) {
+        static void get(value const& v, std::vector<T>& dst) {
             array src = v.get<array>();
-            std::vector<T> dst(src.size());
+            dst.resize(src.size());
             std::transform(std::begin(src), std::end(src), std::begin(dst),
                 [](value const& itm) {
                     auto i = json::get<T>(itm);
                     return i ? *i : static_cast<T>(0);
                 });
-            return dst;
         }
     };
 
@@ -159,14 +162,12 @@ namespace json { namespace detail {
             return value(dst);
         }
 
-        static std::map<Key, Val> get(value const& v) {
+        static void get(value const& v, std::map<Key, Val>& dst) {
             object src = v.get<object>();
-            std::map<Key, Val> dst;
             for (auto& itm : src) {
                 auto i = json::get<Val>(itm.second);
                 dst.insert(std::make_pair(itm.first, i ? *i : static_cast<Val>(0)));
             }
-            return dst;
         }
     };
 
