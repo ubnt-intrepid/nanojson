@@ -15,24 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="test.cpp">
+    <ClCompile Include="example.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="picojson_helper.hpp">
+    <ClInclude Include="json.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="picojson\picojson.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="picojson_helper.hpp.erb">
-      <Filter>リソース ファイル</Filter>
-    </None>
-    <None Include="preprocess.bat">
-      <Filter>リソース ファイル</Filter>
-    </None>
   </ItemGroup>
 </Project>

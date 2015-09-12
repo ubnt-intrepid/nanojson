@@ -1,81 +1,112 @@
 ﻿#include <iostream>
-#include <string>
-#include <sstream>
-#include <stdexcept>
+#include <cassert>
+#include "json.hpp"
 
-#include "picojson/picojson.h"
-#include "picojson_helper.hpp"
 
-struct sample
+void test_primitive()
 {
-   enum class sample3 { a, b, c };
-   friend std::ostream& operator<<(std::ostream& os, sample3 s)
-   {
-      if      (s == sample3::a) { return os << "a"; }
-      else if (s == sample3::b) { return os << "b"; }
-      else if (s == sample3::c) { return os << "c"; }
-      else throw std::bad_cast("sample::sample3");
-   }
-   friend std::istream& operator>>(std::istream& is, sample3& s)
-   {
-      std::string src;
-      is >> src;
-      if      (src == "a") { s = sample3::a; }
-      else if (src == "b") { s = sample3::b; }
-      else if (src == "c") { s = sample3::c; }
-      else throw std::bad_cast("sample::sample3");
-      return is;
-   }
+    json::value v;
 
-   struct sample_i {
-      int d;
-      std::vector<int> e;
-      sample3 f;
+    // null value
+    v = json::make_value();
+    assert(v.is<json::null>());
+    assert(!(json::get<double>(v)));
 
-  public:
-      sample_i() = default;
-      sample_i(int d, std::vector<int> e, sample3 f) : d(d), e(e), f(f) {}
-      PICOJSON_DEFINE(d, e, f);
-   };
+    // boolean
+    {
+        v = json::make_value(false);
+        assert(v.is<bool>());
+        
+        auto ret = json::get<bool>(v);
+        assert((bool)ret);
+        assert(*ret == false);
+    }
 
-   public:
-   double a, b;
-   std::string c;
-   sample_i node;
+    // integer
+    {
+        v = json::make_value(5);
+        assert(v.is<double>());
 
-   public:
-   sample() = default;
-   sample(double a, double b, std::string c, int d, std::vector<int> e, sample3 f)
-       : a(a), b(b), c(c), node(d, e, f)
-   {
-   }
-   PICOJSON_DEFINE(a, b, c, node);
+        auto ret = json::get<int>(v);
+        assert((bool)ret);
+        assert(*ret == 5);
+    }
 
-   friend std::ostream& operator<<(std::ostream& os, sample const& s)
-   {
-      picojson::value v;
-      picojson::to_value(v, s.node);
-      return os << "{ \"a\": " << s.a << ", \"b\": " << s.b
-                << ", \"c\": " << s.c
-                << ", \"d\": " << v.serialize() << " }";
-   }
-};
+    // floating point
+    {
+        v = json::make_value(3.14); // double
+        assert(v.is<double>());
+
+        auto ret = json::get<double>(v);
+        assert((bool)ret);
+        assert(*ret == 3.14);
+    }
+
+    {
+        v = json::make_value(3.14f); // float
+        assert(v.is<double>());
+
+        auto ret = json::get<float>(v);
+        assert((bool)ret);
+        assert(*ret == 3.14f);
+    }
+
+    // string
+    {
+        v = json::make_value("hogehoge");
+        assert(v.is<std::string>());
+
+        auto ret = json::get<std::string>(v);
+        assert((bool)ret);
+        assert(*ret == "hogehoge");
+    }
+
+    {
+        v = json::make_value(std::string("fuga"));
+        assert(v.is<std::string>());
+
+        auto ret = json::get<std::string>(v);
+        assert((bool)ret);
+        assert(*ret == "fuga");
+    }
+}
+
+void test_array()
+{
+    json::value v = json::make_value(std::vector<int>{ 1, 2, 3 });
+    assert(v.is<json::array>());
+    
+    //std::cout << v.serialize(true) << std::endl;
+
+    auto ret = json::get<std::vector<int>>(v);
+    assert((bool)ret);
+    assert(ret->size() == 3);
+    assert(ret->at(0) == 1);
+    assert(ret->at(1) == 2);
+    assert(ret->at(2) == 3);
+}
+
+void test_map()
+{
+    json::value v = json::make_value(std::map<std::string, int>{
+        { "aa", 1 },
+        { "bb", 3 },
+        { "cc", 2 },
+    });
+    assert(v.is<json::object>());
+
+    std::cout << v.serialize(true) << std::endl;
+}
 
 int main()
 {
-   // serialization
-   sample target(1, 2, "a", 4, {1, 2, 3}, sample::sample3::b);
-   picojson::value val;
-   picojson::to_value(val, target);
+    int a,b,c;
+    static_assert(JSON_ARGS_LEN(a,b,c) == 3, "");
+    static_cast<void>(a);
+    static_cast<void>(b);
+    static_cast<void>(c);
 
-   std::cout << "serialized: " << std::endl;
-   std::cout << val.serialize() << std::endl;
-   std::cout << std::endl;
-
-   // deserialization
-   sample dest;
-   picojson::from_value(dest, val);
-
-   std::cout << "deserialized: " << std::endl;
-   std::cout << dest << std::endl;
+    test_primitive();
+    test_array();
+    test_map();
 }
