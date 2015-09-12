@@ -76,6 +76,10 @@ namespace json { namespace detail {
 
 #undef IS_JSON_TYPE
 
+    template <typename T>
+    using is_arithmetic = std::integral_constant<bool,
+        std::is_arithmetic<T>::value && !is_json_type<T>::value>;
+
     template <typename Pred, typename T = void>
     using enable_if = typename std::enable_if<Pred::value, T>::type;
 
@@ -83,32 +87,20 @@ namespace json { namespace detail {
     template <typename T, typename Enable = void>
     struct json_traits {};
 
-    template <>
-    struct json_traits<bool>
+    template <typename T>
+    struct json_traits<T, enable_if<is_json_type<T>>>
     {
-        inline static value make_value(bool v) {
+        inline static value make_value(T const& v) {
             return value(v);
         }
 
-        inline static bool get(value const& v) {
-            return v.get<bool>();
-        }
-    };
-
-    template <>
-    struct json_traits<std::string>
-    {
-        inline static value make_value(std::string const& v) {
-            return value(v);
-        }
-
-        inline static std::string get(value const& v) {
-            return v.get<std::string>();
+        inline static T get(value const& v) {
+            return v.get<T>();
         }
     };
 
     template <typename T>
-    struct json_traits<T, enable_if<std::is_arithmetic<T>>>
+    struct json_traits<T, enable_if<is_arithmetic<T>>>
     {
         inline static value make_value(T v) {
             return value(static_cast<double>(v));
@@ -125,30 +117,26 @@ namespace json { namespace detail {
         inline static value make_value(char const* val) {
             return value(val, N - 1);
         }
-        
-        static void get(value const&) = delete;
     };
 
     template <typename T>
     struct json_traits<std::vector<T>>
     {
         static value make_value(std::vector<T> const& val) {
-            array dst;
-            dst.reserve(val.size());
-            for (T const& it : val) {
-                dst.push_back(json::make_value(it));
-            }
+            array dst(val.size());
+            std::transform(std::begin(val), std::end(val), std::begin(dst),
+                           [](T const& it){ return json::make_value(it); });
             return value(dst);
         }
         
         static std::vector<T> get(value const& v) {
             array src = v.get<array>();
-            std::vector<T> dst;
-            dst.reserve(src.size());
-            for (auto& itm : src) {
-                auto i = json::get<T>(itm);
-                dst.push_back(i ? *i : static_cast<T>(0));
-            }
+            std::vector<T> dst(src.size());
+            std::transform(std::begin(src), std::end(src), std::begin(dst),
+                [](value const& itm) {
+                    auto i = json::get<T>(itm);
+                    return i ? *i : static_cast<T>(0);
+                });
             return dst;
         }
     };

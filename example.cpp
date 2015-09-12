@@ -94,8 +94,6 @@ void test_map()
         { "cc", 2 },
     });
     assert(v.is<json::object>());
-
-    std::cout << v.serialize(true) << std::endl;
 }
 
 int main()
