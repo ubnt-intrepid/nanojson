@@ -147,6 +147,21 @@ void test_user_defined()
     assert(ret->c == "hogehoge");
 }
 
+void test_parse()
+{
+    std::string json = "[\"a\", \"b\", \"c\"]";
+    std::string err;
+    auto ret = nanojson::parse(json, err);
+    assert((bool)ret);
+
+    auto val = nanojson::get<std::vector<std::string>>(*ret);
+    assert((bool)val);
+    assert(val->size() == 3);
+    assert(val->at(0) == "a");
+    assert(val->at(1) == "b");
+    assert(val->at(2) == "c");
+}
+
 int main()
 {
     int a,b,c;
@@ -161,4 +176,5 @@ int main()
     test_get();
     test_assign();
     test_user_defined();
+    test_parse();
 }

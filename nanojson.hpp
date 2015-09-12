@@ -46,7 +46,10 @@
 
 
 namespace nanojson {
-    using namespace picojson;
+    using picojson::value;
+    using picojson::null;
+    using picojson::array;
+    using picojson::object;
 
     // forward declarations
 
@@ -61,6 +64,8 @@ namespace nanojson {
 
     template <typename... Args>
     void assign(array const& src, Args&... dst);
+
+    std::unique_ptr<value> parse(std::string const& src, std::string& err);
 
 } // namespace nanojson;
 
@@ -271,6 +276,18 @@ namespace nanojson {
     {
         assert(src.size() == sizeof...(Args));
         detail::assign_impl<0, sizeof...(Args)>::apply(src, dst...);
+    }
+
+    std::unique_ptr<value> parse(std::string const& src, std::string& err)
+    {
+        // parse from string
+        value v;
+        err = picojson::parse(v, src);
+        if (!err.empty()) {
+            return std::unique_ptr<value>();
+        }
+
+        return std::unique_ptr<value>(new value(std::move(v)));
     }
 
 } // namespace json;
