@@ -65,6 +65,15 @@ namespace json {
         }
     }
 
+    template <typename T>
+    bool assign(value const& v, T& dst) {
+        if (v.is<null>())
+            return false;
+
+        detail::json_traits<T>::get(v, dst);
+        return true;
+    }
+
 } // namespace json;
 
 

@@ -103,6 +103,20 @@ void test_map()
     assert(ret->at("cc") == 2);
 }
 
+void test_assign()
+{
+    json::value v;
+    double x;
+    bool not_null_ = json::assign(v, x);
+    assert(!not_null_);
+
+    v = json::value(1.0);
+    double a;
+    bool not_null = json::assign(v, a);
+    assert(not_null);
+    assert(a == 1.0);
+}
+
 int main()
 {
     int a,b,c;
@@ -114,4 +128,5 @@ int main()
     test_primitive();
     test_array();
     test_map();
+    test_assign();
 }
