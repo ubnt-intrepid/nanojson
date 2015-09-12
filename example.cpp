@@ -94,6 +94,13 @@ void test_map()
         { "cc", 2 },
     });
     assert(v.is<json::object>());
+
+    auto ret = json::get<std::map<std::string, int>>(v);
+    assert((bool)ret);
+    assert(ret->size() == 3);
+    assert(ret->at("aa") == 1);
+    assert(ret->at("bb") == 3);
+    assert(ret->at("cc") == 2);
 }
 
 int main()
