@@ -30,8 +30,9 @@ struct sample
 
 public:
     NANOJSON_ADAPT(a, b, c);
+    
     friend ostream& operator<<(ostream& os, sample const& s) {
-        // ...
+        return os << nanojson::make_value(s).serialize();
     }
 };
 
