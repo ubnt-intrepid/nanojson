@@ -73,7 +73,7 @@ void test_primitive()
 
 void test_array()
 {
-    json::value v = json::make_value(std::vector<int>{ 1, 2, 3 });
+    json::value v = json::make_value({ 1, 2, 3 });
     assert(v.is<json::array>());
     
     //std::cout << v.serialize(true) << std::endl;

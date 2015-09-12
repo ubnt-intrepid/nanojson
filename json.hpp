@@ -47,6 +47,12 @@ namespace json {
         return value();    // null
     }
 
+    template <typename T>
+    inline value make_value(std::initializer_list<T> val)
+    {
+        return make_value(std::vector<T>(val));
+    }
+
 
     template <typename T = double>
     std::unique_ptr<T> get(value const& v) {
