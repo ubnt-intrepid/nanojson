@@ -67,6 +67,9 @@ namespace nanojson {
 
     std::unique_ptr<value> parse(std::string const& src, std::string& err);
 
+    template <typename T>
+    std::string serialize(T const& src, bool pretty = false);
+
 } // namespace nanojson;
 
 
@@ -288,6 +291,17 @@ namespace nanojson {
         }
 
         return std::unique_ptr<value>(new value(std::move(v)));
+    }
+
+    template <typename T>
+    inline std::string serialize(T const& src, bool pretty) {
+        return make_value(src).serialize(pretty);
+    }
+
+    template <typename T>
+    inline std::string serialize(std::initializer_list<T> val, bool pretty = false)
+    {
+        return make_value(std::vector<T>(val)).serialize(pretty);
     }
 
 } // namespace json;

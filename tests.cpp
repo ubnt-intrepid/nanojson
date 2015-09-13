@@ -177,4 +177,7 @@ int main()
     test_assign();
     test_user_defined();
     test_parse();
+
+    std::string serialized = nanojson::serialize({1, 2, 3});
+    assert(serialized == "[1,2,3]");
 }
