@@ -8,11 +8,10 @@ nanojson
 
 # Requirement
 
--   Visual C++ (2013 or later)
--   gcc (5.2.0 or later)
--   clang (3.6.0 or later)
-
--   picojson (v1.3.0)
+- Visual C++ (2013 or later)
+- gcc (5.2.0 or later)
+- clang (3.6.2 or later)
+- picojson (v1.3.0)
 
 # Example
 
@@ -48,7 +47,7 @@ int main()
     cout << endl;
 
     // deserialization from JSON string
-    std::string err;
+    string err;
     unique_ptr<sample> dest = nanojson::parse(serialized, err);
 
     cout << "deserialized: " << endl;
