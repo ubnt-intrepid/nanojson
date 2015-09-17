@@ -31,7 +31,7 @@ public:
     NANOJSON_ADAPT(a, b, c);
     
     friend ostream& operator<<(ostream& os, sample const& s) {
-        return os << nanojson::make_value(s).serialize();
+        return os << nanojson::serialize(s, true);
     }
 };
 
@@ -39,8 +39,7 @@ int main()
 {
     // serialize to JSON string
     sample target {1, 2, "a"};
-    nanojson::value val = nanojson::make_value(target);
-    string serialized = val.serialize();
+    string serialized = nanojson::serialize(target);
 
     cout << "serialized: " << endl;
     cout << serialized << endl;
