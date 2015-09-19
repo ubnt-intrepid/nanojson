@@ -18,7 +18,7 @@ def init(ctx):
     pass
 
 def options(opt):
-    opt.load('compiler_cxx waf_unit_test')
+    opt.load('compiler_cxx waf_unit_test msvs')
 
 def configure(conf):
     conf.load('compiler_cxx gnu_dirs')
@@ -35,6 +35,9 @@ def configure(conf):
     conf.env.append_unique('CXXFLAGS', cxxflags)
 
 def build(bld):
+    bld.configurations = ['Debug', 'Release']
+    bld.platforms = ['Win32', 'x64']
+
     bld.program(features='cxx cxxprogram test',
                 target='nanojson_test',
                 source='tests.cpp',

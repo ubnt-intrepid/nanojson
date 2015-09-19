@@ -193,3 +193,6 @@ ModelManifest.xml
 waf3-*/
 waf-*/
 .lock-waf*
+*.lastbuildstate
+*.depproj/
+*.sln
