@@ -1,0 +1,21 @@
+# Hoge.yml
+# Definition of class
+# last modified: 2015-09-20
+
+namespace: hoge.fuga
+# name: Fuga
+items:
+  - name: a
+    type: int
+
+  - name: b
+    type: double
+    tag: tag1
+
+  - name: c
+    type: std::string
+    default: hogehoge
+  #
+  # - name: d
+  #   type: int
+  #   optional: true

@@ -26,6 +26,7 @@
 #include <type_traits>
 #include <tuple>
 #include <memory>
+#include <cassert>
 #include "picojson/picojson.h"
 
 
@@ -110,7 +111,7 @@ namespace nanojson { namespace detail {
         }
 
         inline static void get(value const& v, T& dst) {
-            dst.assign(v.get<array>());
+            dst.assign(v);
         }
     };
 
