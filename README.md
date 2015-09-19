@@ -1,6 +1,9 @@
 nanojson
 ========
 
+[![Build Status](https://travis-ci.org/ys-nuem/nanojson.svg?branch=master)](https://travis-ci.org/ys-nuem/nanojson)
+[![Build status](https://ci.appveyor.com/api/projects/status/g2snjj607rxmo1sm?svg=true)](https://ci.appveyor.com/project/y-sasaki-nuem/nanojson)
+
 # Overview
 
 [picojson](https://github.com/kazuho/picojson)
