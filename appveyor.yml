@@ -4,7 +4,7 @@ environment:
    CTEST_OUTPUT_ON_FAILURE: 1
    matrix:
       - BUILD:  msvc
-      - CONFIG: Debug
+        CONFIG: Debug
 
 build_script:
    - waf --check-cxx-compiler=msvc --msvc_version="msvc 12.0" configure build --notest"
