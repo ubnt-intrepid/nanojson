@@ -18,6 +18,13 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\nanojson.hpp" />
+    <ClInclude Include="..\picojson\picojson.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\tests.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{481476DF-227A-4494-AF82-72781C484896}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -166,13 +173,6 @@
       </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="nanojson.hpp" />
-    <ClInclude Include="picojson\picojson.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="tests.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

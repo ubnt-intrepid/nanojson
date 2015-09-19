@@ -8,56 +8,38 @@
 
 import platform
 
-APPNAME = 'my-cpp-libs'
+APPNAME = 'nanojson'
 VERSION = '0.0.1'
 
 top = '.'
 out = 'build'
-subdirs = 'src gmock'
 
-def get_cxx_compiler(ctx):
-    compiler = ctx.options.check_cxx_compiler
-    if compiler in ('msvc', 'g++', 'clang++'):
-        return compiler 
-    # default compiler
-    if platform.system() == 'Windows':
-        ctx.options.check_cxx_compiler = 'msvc'
-        return 'msvc'
-    else:
-        ctx.options.check_cxx_compiler = 'clang++'
-        return 'clang++'
+def init(ctx):
+    pass
 
 def options(opt):
-    opt.load('compiler_cxx')
-    opt.recurse(subdirs)
+    opt.load('compiler_cxx waf_unit_test')
 
 def configure(conf):
     conf.load('compiler_cxx gnu_dirs')
-    
-    # Add compiler-dependent configurations.
-    compiler = get_cxx_compiler(conf)
-    if compiler == 'msvc':
-        # Visual C++
-        conf.env['MSVC_VERSIONS'] = ['msvc 12.0']
-        conf.env['MSVC_TARGETS']  = ['x64']
-        conf.env.append_unique('CXXFLAGS', ['/EHsc'])
 
-    elif compiler in ('g++', 'clang++'):
-        # GCC, Clang
-        conf.env.append_unique('CXXFLAGS', ['-O2', '-Wall', '-std=c++11'])
-        if compiler == 'clang++':
-            conf.env.append_unique('CXXFLAGS', ['-stdlib=libc++'])
-    
-    conf.recurse(subdirs)
+    target = conf.options.check_cxx_compiler
+    if target is None:
+        from waflib.Tools import compiler_cxx
+        target = compiler_cxx.default_compilers()[0]
+
+    if target == 'msvc':
+        cxxflags = ['/EHsc']
+    elif target in ('g++', 'clang++'):
+        cxxflags = ['-O2', '-Wall', '-std=c++11']
+    conf.env.append_unique('CXXFLAGS', cxxflags)
 
 def build(bld):
-    from waflib import Options
-    
-    # Set the build feature
-    features = ['cxx', 'cxxprogram']
-    if Options.options.test:
-        features += ['test']
-    setattr(bld, 'features', features)
+    bld.program(features='cxx cxxprogram test',
+                target='nanojson_test',
+                source='tests.cpp',
+                includes='.')
 
-    bld.recurse(subdirs)
-
+    from waflib.Tools import waf_unit_test
+    bld.add_post_fun(waf_unit_test.set_exit_code)
+    bld.add_post_fun(waf_unit_test.summary)
