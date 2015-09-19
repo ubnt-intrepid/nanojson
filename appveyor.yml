@@ -6,6 +6,9 @@ environment:
       - BUILD:  msvc
         CONFIG: Debug
 
+before_build:
+   - git submodule update --init
+
 build_script:
    - waf --check-cxx-compiler=msvc --msvc_version="msvc 12.0" configure build --notest"
 
