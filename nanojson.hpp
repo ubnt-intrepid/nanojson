@@ -30,22 +30,6 @@
 #include "picojson/picojson.h"
 
 
-// Calculate the count of arguments.
-#define NANOJSON_LEN_ARGS(...) \
-    std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value
-
-
-// Adapt user-defined struct to JSON-able type
-#define NANOJSON_ADAPT(...)                         \
-    void assign(nanojson::array const& src) {       \
-        nanojson::assign(src, __VA_ARGS__);         \
-    }                                               \
-                                                    \
-    nanojson::value as_json() const {               \
-        return nanojson::make_value(__VA_ARGS__);   \
-    }
-
-
 namespace nanojson {
     using picojson::value;
     using picojson::null;
@@ -66,7 +50,8 @@ namespace nanojson {
     template <typename... Args>
     void assign(array const& src, Args&... dst);
 
-    std::unique_ptr<value> parse(std::string const& src, std::string& err);
+    template <typename T = value>
+    std::unique_ptr<T> parse(std::string const& src, std::string& err);
 
     template <typename T>
     std::string serialize(T const& src, bool pretty = false);
@@ -282,7 +267,8 @@ namespace nanojson {
         detail::assign_impl<0, sizeof...(Args)>::apply(src, dst...);
     }
 
-    std::unique_ptr<value> parse(std::string const& src, std::string& err)
+    template <typename T>
+    std::unique_ptr<T> parse(std::string const& src, std::string& err)
     {
         // parse from string
         value v;
@@ -291,7 +277,7 @@ namespace nanojson {
             return std::unique_ptr<value>();
         }
 
-        return std::unique_ptr<value>(new value(std::move(v)));
+        return nanojson::get<T>(v);
     }
 
     template <typename T>
