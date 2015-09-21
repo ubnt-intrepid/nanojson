@@ -1,0 +1,18 @@
+# Hoge.toml
+
+namespace = "hoge.fuga"
+name = "Person"
+
+[[items]]
+name = "a"
+type = "int"
+
+[[items]]
+name = "b"
+type = "double"
+tag  = "tag1"
+
+[[items]]
+name    = "c"
+type    = "std::string"
+default = "hogehoge"
