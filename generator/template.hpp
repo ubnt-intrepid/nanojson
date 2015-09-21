@@ -3,7 +3,9 @@
 #include <string>
 
 
-{% for item in c.namespace %}namespace {{item}} { {% endfor %}
+{% for item in c.namespace -%}
+namespace {{item}} { 
+{%- endfor %}
 
 struct {{c.name}}
 {
