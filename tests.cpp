@@ -150,26 +150,20 @@ void test_assign()
 void test_parse()
 {
     std::string json = "[\"a\", \"b\", \"c\"]";
-    std::string err;
-    auto ret = nanojson::parse(json, err);
-    assert((bool)ret);
 
-    auto val = nanojson::get<std::vector<std::string>>(*ret);
-    assert((bool)val);
-    assert(val->size() == 3);
-    assert(val->at(0) == "a");
-    assert(val->at(1) == "b");
-    assert(val->at(2) == "c");
+    std::string err;
+    auto ret = nanojson::parse<std::vector<std::string>>(json, err);
+    assert((bool)ret);
+    assert(err.empty());
+
+    assert(ret->size() == 3);
+    assert(ret->at(0) == "a");
+    assert(ret->at(1) == "b");
+    assert(ret->at(2) == "c");
 }
 
 int main()
 {
-    int a,b,c;
-    static_assert(NANOJSON_LEN_ARGS(a,b,c) == 3, "");
-    static_cast<void>(a);
-    static_cast<void>(b);
-    static_cast<void>(c);
-
     test_primitive();
     test_array();
     test_map();
