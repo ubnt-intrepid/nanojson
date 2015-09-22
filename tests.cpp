@@ -128,24 +128,41 @@ void test_assign()
     assert(c == 3);
 }
 
-// void test_user_defined()
-// {
-//     struct TestClass {
-//         int a, b;
-//         std::string c;
-//     public:
-//         NANOJSON_ADAPT(a, b, c);
-//     };
-//
-//     nanojson::value v = nanojson::make_value(TestClass{ 1, 4, "hogehoge" });
-//     assert(v.is<nanojson::array>());
-//
-//     auto ret = nanojson::get<TestClass>(v);
-//     assert((bool)ret);
-//     assert(ret->a == 1);
-//     assert(ret->b == 4);
-//     assert(ret->c == "hogehoge");
-// }
+void test_user_defined()
+{
+    struct TestClass {
+        int a, b;
+        std::string c;
+    private:
+        friend class nanojson::detail::json_traits<TestClass>;
+
+        nanojson::value as_json() const {
+            return nanojson::value(nanojson::object{
+                {"a", nanojson::make_value(a)},
+                {"b", nanojson::make_value(b)},
+                {"c", nanojson::make_value(c)},
+            });
+        }
+
+        void assign(nanojson::value const& v) {
+            auto obj = v.get<nanojson::object>();
+            *this = TestClass{
+                *nanojson::get<decltype(a)>(obj.at("a")),
+                *nanojson::get<decltype(b)>(obj.at("b")),
+                *nanojson::get<decltype(c)>(obj.at("c")),
+            };
+        }
+    };
+
+    nanojson::value v = nanojson::make_value(TestClass{ 1, 4, "hogehoge" });
+    assert(v.is<nanojson::object>());
+
+    auto ret = nanojson::get<TestClass>(v);
+    assert((bool)ret);
+    assert(ret->a == 1);
+    assert(ret->b == 4);
+    assert(ret->c == "hogehoge");
+}
 
 void test_parse()
 {
@@ -169,7 +186,7 @@ int main()
     test_map();
     test_get();
     test_assign();
-   //  test_user_defined();
+    test_user_defined();
     test_parse();
 
     std::string serialized = nanojson::serialize({1, 2, 3});
