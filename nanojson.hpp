@@ -87,10 +87,37 @@ namespace nanojson { namespace detail {
     template <typename Pred, typename T = void>
     using enable_if = typename std::enable_if<Pred::value, T>::type;
 
+    template <typename T>
+    struct is_user_defined {
+    private:
+        template <class U> static auto check(U* u) -> decltype(
+            u->assign(std::declval<value>()),
+            u->as_json(),
+            std::true_type());
+        template <class>   static auto check(...) -> std::false_type;
+    public:
+        using type = decltype(check<T>(nullptr));
+        static const bool value = type::value;
+    };
 
-    // user-defined type
+
     template <typename T, typename Enable = void>
     struct json_traits {
+        static value make_value(T const& v) {
+            std::stringstream sstr;
+            sstr << v;
+            return value(sstr.str());
+        }
+
+        static void get(value const& v, T& dst) {
+            std::stringstream sstr(v.get<std::string>());
+            sstr >> dst;
+        }
+    };
+
+    // user-defined type
+    template <typename T>
+    struct json_traits<T, enable_if<is_user_defined<T>>> {
         inline static value make_value(T const& v) {
             return v.as_json();
         }

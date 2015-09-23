@@ -133,8 +133,6 @@ void test_user_defined()
     struct TestClass {
         int a, b;
         std::string c;
-    private:
-        friend class nanojson::detail::json_traits<TestClass>;
 
         nanojson::value as_json() const {
             return nanojson::value(nanojson::object{
@@ -153,6 +151,7 @@ void test_user_defined()
             };
         }
     };
+    static_assert(nanojson::detail::is_user_defined<TestClass>::value, "");
 
     nanojson::value v = nanojson::make_value(TestClass{ 1, 4, "hogehoge" });
     assert(v.is<nanojson::object>());
@@ -162,6 +161,32 @@ void test_user_defined()
     assert(ret->a == 1);
     assert(ret->b == 4);
     assert(ret->c == "hogehoge");
+}
+
+struct TestClass {
+    std::string s;
+
+public:
+    friend std::ostream& operator<<(std::ostream& os, TestClass const& s) {
+        return os << s.s;
+    }
+
+    friend std::istream& operator>>(std::istream& is, TestClass& s) {
+        std::string str;
+        is >> str;
+        s.s = std::move(str);
+        return is;
+    }
+};
+
+void test_general_type()
+{
+    nanojson::value v = nanojson::make_value(TestClass{"hogehoge"});
+    assert(v.is<std::string>());
+
+    auto ret = nanojson::get<TestClass>(v);
+    assert((bool)ret);
+    assert(ret->s == "hogehoge");
 }
 
 void test_parse()
@@ -187,6 +212,7 @@ int main()
     test_get();
     test_assign();
     test_user_defined();
+    test_general_type();
     test_parse();
 
     std::string serialized = nanojson::serialize({1, 2, 3});
