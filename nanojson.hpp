@@ -61,6 +61,10 @@ namespace nanojson {
 
 namespace nanojson { namespace detail {
 
+    template <typename Pred, typename T = void>
+    using enable_if = typename std::enable_if<Pred::value, T>::type;
+
+
     template <typename T>
     struct is_picojson_type : std::false_type {};
 
@@ -77,15 +81,18 @@ namespace nanojson { namespace detail {
 
 #undef IS_PICOJSON_TYPE
 
+    template <typename Lhs, typename Rhs>
+    using is_same = typename std::is_same<Lhs, Rhs>::type;
+
+    template <typename T>
+    using remove_const = typename std::remove_const<T>::type;
+
     template <typename T>
     using is_arithmetic = std::integral_constant<bool,
         std::is_arithmetic<T>::value && !is_picojson_type<T>::value>;
 
     template <std::size_t Lhs, std::size_t Rhs>
     struct less_than { static const bool value = Lhs < Rhs; };
-
-    template <typename Pred, typename T = void>
-    using enable_if = typename std::enable_if<Pred::value, T>::type;
 
     template <typename T>
     struct is_user_defined {
@@ -115,18 +122,6 @@ namespace nanojson { namespace detail {
         }
     };
 
-    // user-defined type
-    template <typename T>
-    struct json_traits<T, enable_if<is_user_defined<T>>> {
-        inline static value make_value(T const& v) {
-            return v.as_json();
-        }
-
-        inline static void get(value const& v, T& dst) {
-            dst.assign(v);
-        }
-    };
-
     // picojson primitive types
     template <typename T>
     struct json_traits<T, enable_if<is_picojson_type<T>>>
@@ -137,22 +132,6 @@ namespace nanojson { namespace detail {
 
         inline static void get(value const& v, T& dst) {
             dst = v.get<T>();
-        }
-    };
-
-    template <>
-    struct json_traits<array>
-    {
-        inline static value make_value(array const& val) {
-            return value(val);
-        }
-    };
-
-    template <>
-    struct json_traits<object>
-    {
-        inline static value make_value(object const& val) {
-            return value(val);
         }
     };
 
@@ -168,16 +147,8 @@ namespace nanojson { namespace detail {
         }
     };
 
-    template <std::size_t N>
-    struct json_traits<char const[N]>
-    {
-        inline static value make_value(char const* val) {
-            return value(val, N - 1);
-        }
-    };
-
-    template <std::size_t N>
-    struct json_traits<char[N]>
+    template <typename T, std::size_t N>
+    struct json_traits<T[N], enable_if<is_same<char, remove_const<T>>>>
     {
         inline static value make_value(char const* val) {
             return value(val, N - 1);
@@ -212,7 +183,7 @@ namespace nanojson { namespace detail {
             object dst;
             using value_type = typename std::map<Key, Val>::value_type;
             for (value_type const& it : val) {
-                dst.insert(std::make_pair(it.first, nanojson::make_value(it.second)));
+                dst.insert({ it.first, nanojson::make_value(it.second) });
             }
             return value(dst);
         }
@@ -221,8 +192,21 @@ namespace nanojson { namespace detail {
             object src = v.get<object>();
             for (auto& itm : src) {
                 auto i = nanojson::get<Val>(itm.second);
-                dst.insert(std::make_pair(itm.first, i ? *i : static_cast<Val>(0)));
+                dst.insert({ itm.first, i ? *i : static_cast<Val>(0) });
             }
+        }
+    };
+
+    // user-defined type
+    template <typename T>
+    struct json_traits<T, enable_if<is_user_defined<T>>>
+    {
+        inline static value make_value(T const& v) {
+            return v.as_json();
+        }
+
+        inline static void get(value const& v, T& dst) {
+            dst.assign(v);
         }
     };
 

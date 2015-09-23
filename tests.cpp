@@ -62,6 +62,15 @@ void test_primitive()
     }
 
     {
+        v = nanojson::make_value((char const*)"hogehoge");
+        assert(v.is<std::string>());
+
+        auto ret = nanojson::get<std::string>(v);
+        assert((bool)ret);
+        assert(*ret == "hogehoge");
+    }
+
+    {
         v = nanojson::make_value(std::string("fuga"));
         assert(v.is<std::string>());
 
