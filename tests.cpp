@@ -115,15 +115,13 @@ void test_map()
 void test_get()
 {
     nanojson::value v;
-    double x;
-    bool not_null_ = nanojson::get(v, x);
-    assert(!not_null_);
+    std::unique_ptr<double> x = nanojson::get<double>(v);
+    assert(!x);
 
     v = nanojson::value(1.0);
-    double a;
-    bool not_null = nanojson::get(v, a);
-    assert(not_null);
-    assert(a == 1.0);
+    std::unique_ptr<double> a = nanojson::get<double>(v);
+    assert(a);
+    assert(*a == 1.0);
 }
 
 void test_assign()

@@ -44,9 +44,6 @@ namespace nanojson {
     template <typename T>
     std::unique_ptr<T> get(value const& v);
 
-    template <typename T>
-    bool get(value const& v, T& dst);
-
     template <typename... Args>
     void assign(array const& src, Args&... dst);
 
@@ -226,8 +223,8 @@ namespace nanojson { namespace detail {
         {
             using element_type =
                 typename std::tuple_element<Idx, std::tuple<Args...>>::type;
-            nanojson::get<element_type>(src.at(Idx), std::get<Idx>(std::tie(args...)));
-
+            std::get<Idx>(std::tie(args...)) =
+                *nanojson::get<element_type>(src.at(Idx));
             assign_impl<Idx + 1, N>::apply(src, args...);
         }
     };
@@ -269,15 +266,6 @@ namespace nanojson {
             detail::json_traits<T>::get(v, val);
             return std::unique_ptr<T>(new T(std::move(val)));
         }
-    }
-
-    template <typename T>
-    bool get(value const& v, T& dst) {
-        if (v.is<null>())
-            return false;
-
-        detail::json_traits<T>::get(v, dst);
-        return true;
     }
 
     template <typename... Args>
