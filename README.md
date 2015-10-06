@@ -8,15 +8,15 @@ nanojson
 
 [picojson](https://github.com/kazuho/picojson)を使いやすくするためのマクロ・関数群
 
-* `nanojson::serialize(v)`  : 任意の型からJSON形式に変換する
-* `nanojson::parse<T>(str)` : JSONから任意の型に変換する
-* `NANOJSON_ADAPT(...)`     : ユーザ定義型とJSONとの相互変換を有効にする
-
 # Requirement
 
 * C++11対応コンパイラ
   - Visual C++ (2013 or later)
   - gcc (5.2.0 or later)
+  - clang (3.6.0 or later)
+
+* picojson 
+* Boost.Preprocessor
 
 # Example
 

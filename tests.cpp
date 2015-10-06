@@ -1,7 +1,6 @@
 ﻿#include <iostream>
 #include <cassert>
-#include "nanojson.hpp"
-
+#include <nanojson.hpp>
 
 void test_primitive()
 {
