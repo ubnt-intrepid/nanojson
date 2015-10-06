@@ -195,7 +195,7 @@ namespace nanojson { namespace detail {
             std::transform(std::begin(src), std::end(src), std::begin(dst),
                 [](value const& itm) {
                     auto i = nanojson::get<T>(itm);
-                    return i ? *i : static_cast<T>(0);
+                    return i ? *i : T{};
                 });
         }
     };
