@@ -1,5 +1,5 @@
 [submodule "picojson"]
-	path = picojson
+	path = external/picojson
 	url = https://github.com/kazuho/picojson.git
 [submodule "external/boost/preprocessor"]
 	path = external/boost/preprocessor
