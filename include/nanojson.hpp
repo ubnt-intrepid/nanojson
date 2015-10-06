@@ -50,7 +50,7 @@ public:                                                                     \
                                                                             \
     void assign(nanojson::value const& v) {                                 \
         auto obj = v.get<nanojson::object>();                               \
-        *this = {                                                           \
+        *this = std::remove_reference<decltype(*this)>::type{               \
             BOOST_PP_SEQ_FOR_EACH(NANOJSON_ADAPT_ASSIGN_ITEM, _,            \
                                   BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))    \
         };                                                                  \

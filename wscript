@@ -35,7 +35,7 @@ def configure(conf):
     conf.env.append_unique('CXXFLAGS', cxxflags)
     conf.env.append_value('INCLUDES', [
         'include/',
-        'picojson/',
+        'external/picojson/',
         'external/boost/preprocessor/include/',
     ])
 
