@@ -27,7 +27,8 @@
 #include <tuple>
 #include <memory>
 #include <cassert>
-#include "picojson/picojson.h"
+#include <picojson.h>
+#include <boost/preprocessor.hpp>
 
 
 namespace nanojson {

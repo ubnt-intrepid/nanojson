@@ -33,7 +33,9 @@ def configure(conf):
     elif target in ('g++', 'clang++'):
         cxxflags = ['-O2', '-Wall', '-std=c++11']
     conf.env.append_unique('CXXFLAGS', cxxflags)
-    conf.env.append_value('INCLUDES', ['external/boost/preprocessor/include'])
+    conf.env.append_value('INCLUDES', [
+        'external/boost/preprocessor/include/',
+        'picojson/'])
 
 def build(bld):
     bld.configurations = ['Debug', 'Release']
