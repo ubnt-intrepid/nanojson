@@ -27,6 +27,7 @@ nanojson
 #include "nanojson.hpp"
 using namespace std;
 
+// define struct and adapt automated conversion from/to picojson::value
 struct sample
 {
     double a, b;
@@ -34,6 +35,12 @@ struct sample
 
     NANOJSON_ADAPT(a, b, c);
 };
+
+// NANOJSON_DEFINE(sample,
+//     (double, a)
+//     (double, b)
+//     (std::string c)
+// )
 
 ostream& operator<<(ostream& os, sample const& s) {
    return os << nanojson::serialize(s);

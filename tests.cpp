@@ -141,22 +141,7 @@ void test_user_defined()
         int a, b;
         std::string c;
 
-        nanojson::value as_json() const {
-            return nanojson::value(nanojson::object{
-                {"a", nanojson::make_value(a)},
-                {"b", nanojson::make_value(b)},
-                {"c", nanojson::make_value(c)},
-            });
-        }
-
-        void assign(nanojson::value const& v) {
-            auto obj = v.get<nanojson::object>();
-            *this = TestClass{
-                *nanojson::get<decltype(a)>(obj.at("a")),
-                *nanojson::get<decltype(b)>(obj.at("b")),
-                *nanojson::get<decltype(c)>(obj.at("c")),
-            };
-        }
+        NANOJSON_ADAPT(a, b, c);
     };
     static_assert(nanojson::detail::is_user_defined<TestClass>::value, "");
 
