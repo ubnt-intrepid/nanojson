@@ -33,6 +33,7 @@ def configure(conf):
     elif target in ('g++', 'clang++'):
         cxxflags = ['-O2', '-Wall', '-std=c++11']
     conf.env.append_unique('CXXFLAGS', cxxflags)
+    conf.env.append_value('INCLUDES', ['external/boost/preprocessor/include'])
 
 def build(bld):
     bld.configurations = ['Debug', 'Release']
@@ -40,8 +41,7 @@ def build(bld):
 
     bld.program(features='cxx cxxprogram test',
                 target='nanojson_test',
-                source='tests.cpp',
-                includes='.')
+                source='tests.cpp')
 
     from waflib.Tools import waf_unit_test
     bld.add_post_fun(waf_unit_test.set_exit_code)
