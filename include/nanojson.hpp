@@ -39,20 +39,19 @@
     dst.elem = *nanojson::get<decltype(elem)>(obj.at(BOOST_PP_STRINGIZE(elem)));
 
 // NANOJSON_ADAPT()
-#define NANOJSON_ADAPT(...)                                                 \
+#define NANOJSON_ADAPT(...)  NANOJSON_ADAPT_SEQ(BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+#define NANOJSON_ADAPT_SEQ(seq)                                             \
 public:                                                                     \
     nanojson::value as_json() const {                                       \
         return nanojson::value(nanojson::object{                            \
-            BOOST_PP_SEQ_FOR_EACH(NANOJSON_ADAPT_ASJSON_ITEM, _,            \
-                                  BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))    \
+            BOOST_PP_SEQ_FOR_EACH(NANOJSON_ADAPT_ASJSON_ITEM, _, seq)       \
         });                                                                 \
     }                                                                       \
                                                                             \
     void assign(nanojson::value const& v) {                                 \
         auto obj = v.get<nanojson::object>();                               \
         std::remove_reference<decltype(*this)>::type dst{};                 \
-        BOOST_PP_SEQ_FOR_EACH(NANOJSON_ADAPT_ASSIGN_ITEM, _,                \
-                              BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))        \
+        BOOST_PP_SEQ_FOR_EACH(NANOJSON_ADAPT_ASSIGN_ITEM, _, seq)           \
         *this = std::move(dst);                                             \
     }
 
